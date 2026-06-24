@@ -1,0 +1,1699 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>クリスティーナ 見積書作成ツール</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300&family=Noto+Sans+JP:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<style>
+  :root {
+    --cream: #FAF7F2;
+    --warm-white: #FDFCFA;
+    --gold: #B8965A;
+    --gold-light: #D4B07A;
+    --gold-pale: #F5EDD8;
+    --charcoal: #2C2C2C;
+    --mid: #5A5A5A;
+    --light: #8A8A8A;
+    --border: #E2D9C8;
+    --accent: #8B4A6B;
+    --accent-light: #F2E6EC;
+    --success: #4A7C59;
+    --danger: #A04040;
+    --shadow: 0 4px 24px rgba(44,44,44,0.08);
+    --shadow-hover: 0 8px 32px rgba(44,44,44,0.14);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Noto Sans JP', sans-serif;
+    background: var(--cream);
+    color: var(--charcoal);
+    min-height: 100vh;
+    font-size: 14px;
+    font-weight: 300;
+  }
+
+  /* ─── HEADER ─── */
+  .app-header {
+    background: var(--charcoal);
+    color: var(--cream);
+    padding: 20px 40px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 20px rgba(0,0,0,0.2);
+  }
+  .app-logo {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 22px;
+    font-weight: 300;
+    letter-spacing: 0.15em;
+    color: var(--gold-light);
+  }
+  .app-logo span { color: var(--cream); font-weight: 400; }
+  .header-sub {
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    color: var(--light);
+    text-transform: uppercase;
+  }
+
+  /* ─── LAYOUT ─── */
+  .container {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 36px 24px 80px;
+  }
+
+  .section {
+    background: var(--warm-white);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 28px 32px;
+    margin-bottom: 24px;
+    box-shadow: var(--shadow);
+  }
+
+  .section-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 18px;
+    font-weight: 500;
+    color: var(--charcoal);
+    letter-spacing: 0.06em;
+    margin-bottom: 20px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .section-title::before {
+    content: '';
+    display: inline-block;
+    width: 3px;
+    height: 18px;
+    background: var(--gold);
+    border-radius: 2px;
+  }
+
+  /* ─── FORM ─── */
+  .form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .form-group.full { grid-column: 1 / -1; }
+  label {
+    font-size: 12px;
+    letter-spacing: 0.06em;
+    color: var(--mid);
+    font-weight: 400;
+  }
+  input[type="text"], input[type="date"], textarea, select {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 14px;
+    font-family: 'Noto Sans JP', sans-serif;
+    background: var(--warm-white);
+    color: var(--charcoal);
+    transition: border-color 0.2s, box-shadow 0.2s;
+    font-weight: 300;
+    width: 100%;
+  }
+  input:focus, textarea:focus, select:focus {
+    outline: none;
+    border-color: var(--gold);
+    box-shadow: 0 0 0 3px rgba(184,150,90,0.12);
+  }
+  textarea { resize: vertical; min-height: 70px; }
+
+  /* ─── SERIES SELECTOR ─── */
+  .series-add-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr auto;
+    gap: 12px;
+    align-items: end;
+    background: var(--gold-pale);
+    border-radius: 10px;
+    padding: 16px;
+    margin-bottom: 20px;
+    border: 1px solid var(--border);
+  }
+
+  /* ─── BUTTON ─── */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 20px;
+    font-size: 13px;
+    font-family: 'Noto Sans JP', sans-serif;
+    font-weight: 400;
+    cursor: pointer;
+    transition: all 0.2s;
+    letter-spacing: 0.04em;
+    white-space: nowrap;
+  }
+  .btn-gold {
+    background: var(--gold);
+    color: white;
+  }
+  .btn-gold:hover { background: var(--gold-light); box-shadow: var(--shadow-hover); transform: translateY(-1px); }
+  .btn-outline {
+    background: transparent;
+    color: var(--gold);
+    border: 1px solid var(--gold);
+  }
+  .btn-outline:hover { background: var(--gold-pale); }
+  .btn-danger {
+    background: transparent;
+    color: var(--danger);
+    border: 1px solid #E8C8C8;
+    padding: 6px 12px;
+    font-size: 12px;
+    border-radius: 6px;
+  }
+  .btn-danger:hover { background: #FFF0F0; }
+  .btn-sm { padding: 6px 14px; font-size: 12px; }
+  .btn-lg {
+    padding: 14px 36px;
+    font-size: 15px;
+    letter-spacing: 0.08em;
+    border-radius: 10px;
+  }
+  .btn-pdf {
+    background: var(--charcoal);
+    color: white;
+    padding: 14px 40px;
+    font-size: 15px;
+    border-radius: 10px;
+    letter-spacing: 0.1em;
+  }
+  .btn-pdf:hover { background: #444; box-shadow: var(--shadow-hover); transform: translateY(-1px); }
+
+  /* ─── SELECTED SERIES LIST ─── */
+  .series-list { display: flex; flex-direction: column; gap: 16px; }
+
+  .series-card {
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  .series-card-header {
+    background: var(--charcoal);
+    color: var(--cream);
+    padding: 12px 18px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .series-card-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 16px;
+    font-weight: 400;
+    letter-spacing: 0.06em;
+  }
+  .series-card-plan {
+    font-size: 11px;
+    background: var(--gold);
+    padding: 3px 10px;
+    border-radius: 20px;
+    color: white;
+    letter-spacing: 0.06em;
+    margin-right: 10px;
+  }
+  .series-card-body { padding: 16px 18px; }
+
+  /* ─── ITEMS TABLE ─── */
+  .items-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+  .items-table th {
+    background: var(--gold-pale);
+    color: var(--mid);
+    font-size: 11px;
+    font-weight: 400;
+    letter-spacing: 0.06em;
+    padding: 8px 12px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+  }
+  .items-table td {
+    padding: 9px 12px;
+    border-bottom: 1px solid #F0EAE0;
+    vertical-align: middle;
+  }
+  .items-table tr:last-child td { border-bottom: none; }
+  .items-table .amount { text-align: right; font-weight: 400; }
+  .items-table input[type="number"],
+  .items-table input[type="text"] {
+    padding: 5px 8px;
+    font-size: 13px;
+    border-radius: 6px;
+    width: 100%;
+  }
+  .items-table input[type="number"] { width: 70px; text-align: center; }
+
+  /* ─── SUBTOTAL ─── */
+  .subtotal-row {
+    text-align: right;
+    padding: 10px 12px 0;
+    font-size: 13px;
+    color: var(--mid);
+  }
+  .subtotal-amount {
+    font-weight: 500;
+    color: var(--charcoal);
+    font-size: 15px;
+  }
+
+  /* ─── TOTAL SECTION ─── */
+  .total-box {
+    background: var(--charcoal);
+    color: var(--cream);
+    border-radius: 12px;
+    padding: 24px 32px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: var(--shadow);
+  }
+  .total-label {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 20px;
+    font-weight: 300;
+    letter-spacing: 0.1em;
+    color: var(--gold-light);
+  }
+  .total-amount {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 36px;
+    font-weight: 300;
+    color: var(--gold-light);
+    letter-spacing: 0.02em;
+  }
+  .total-tax { font-size: 11px; color: var(--light); text-align: right; }
+
+  /* ─── ACTION BAR ─── */
+  .action-bar {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    padding-top: 8px;
+  }
+
+  /* ─── FIXED PLAN BADGE ─── */
+  .fixed-badge {
+    display: inline-block;
+    font-size: 10px;
+    background: var(--accent-light);
+    color: var(--accent);
+    padding: 2px 8px;
+    border-radius: 10px;
+    letter-spacing: 0.04em;
+    margin-left: 8px;
+    vertical-align: middle;
+  }
+
+  /* ─── ADD ITEM ROW (homecare) ─── */
+  .add-item-row {
+    display: grid;
+    grid-template-columns: 1fr 90px 90px auto;
+    gap: 8px;
+    align-items: center;
+    padding: 10px 12px;
+    background: #F9F6F0;
+    border-top: 1px solid var(--border);
+  }
+
+  /* ─── PRODUCT SUGGESTION ─── */
+  .suggestions {
+    font-size: 11px;
+    color: var(--mid);
+    margin-bottom: 8px;
+    padding: 8px 12px;
+    background: var(--accent-light);
+    border-radius: 6px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    align-items: center;
+  }
+  .suggestion-chip {
+    background: white;
+    border: 1px solid #D9B0C8;
+    color: var(--accent);
+    border-radius: 20px;
+    padding: 3px 10px;
+    cursor: pointer;
+    font-size: 11px;
+    transition: background 0.15s;
+  }
+  .suggestion-chip:hover { background: var(--accent-light); }
+
+  /* ─── PREVIEW MODAL ─── */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.6);
+    z-index: 200;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(3px);
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: white;
+    border-radius: 16px;
+    width: 90%;
+    max-width: 820px;
+    max-height: 90vh;
+    overflow: auto;
+    padding: 0;
+    box-shadow: 0 20px 80px rgba(0,0,0,0.3);
+  }
+  .modal-header {
+    padding: 20px 28px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    background: white;
+    z-index: 10;
+  }
+  .modal-header h2 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 20px;
+    font-weight: 400;
+    color: var(--charcoal);
+  }
+  .modal-body { padding: 28px; }
+  .btn-close {
+    background: none;
+    border: none;
+    font-size: 22px;
+    cursor: pointer;
+    color: var(--mid);
+    line-height: 1;
+    padding: 4px 8px;
+    border-radius: 6px;
+  }
+  .btn-close:hover { background: #F0F0F0; }
+
+  /* ════════════════════════════════════════════════════
+     PDF STYLES
+     ▼ ここを編集すると見積書PDFの見た目を変更できます ▼
+     ════════════════════════════════════════════════════ */
+
+  #pdf-root {
+    display: none;
+    font-family: 'Noto Sans JP', sans-serif;
+    background: white;
+    color: #1a1a1a;
+    position: fixed;
+    top: -99999px;
+    left: 0;
+  }
+
+  /* ── ページ全体 ──
+     padding: 上下左右の余白（単位px）
+     794px × 1123px = A4サイズ */
+  .pdf-page {
+    width: 794px;
+    min-height: 1123px;
+    padding: 56px 64px 80px;
+    background: #ffffff;
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* ── 1ページ目のみ：上部アクセントライン（色を変えるならここ） ── */
+  .pdf-page-cover::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 5px;
+    background: #B8965A; /* ← ゴールドライン。色を変えるならここ */
+  }
+
+  /* ── ヘッダー部分（会社名・タイトル・日付エリア） ── */
+  .pdf-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 36px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #CCCCCC; /* ← 区切り線の色 */
+  }
+
+  /* 会社名 */
+  .pdf-company-name {
+    font-size: 11px;
+    color: #888888; /* ← 会社名の文字色 */
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+
+  /* 「御見積書」タイトル */
+  .pdf-doc-title {
+    font-size: 26px;
+    font-weight: 500;
+    color: #1A1A1A; /* ← タイトル文字色 */
+    letter-spacing: 0.12em;
+    line-height: 1;
+  }
+
+  /* 右側の番号・日付エリア */
+  .pdf-meta-block {
+    text-align: right;
+    font-size: 12px;
+    color: #555555;
+    line-height: 2;
+  }
+  .pdf-meta-block .pdf-est-no {
+    font-size: 12px;
+    font-weight: 500;
+    color: #1A1A1A;
+  }
+
+  /* ── 顧客情報ボックス ──
+     背景色・枠線を変えるならここ */
+  .pdf-client-section {
+    margin-bottom: 28px;
+  }
+  .pdf-client-box {
+    border: 1px solid #CCCCCC;
+    border-top: 3px solid #B8965A; /* ← 上の太線の色（ゴールド） */
+    padding: 16px 20px;
+    background: #FAFAFA;
+  }
+  .pdf-client-name {
+    font-size: 18px;
+    font-weight: 500;
+    color: #1A1A1A;
+    margin-bottom: 4px;
+    letter-spacing: 0.04em;
+  }
+  .pdf-client-attn {
+    font-size: 12px;
+    color: #555555;
+  }
+
+  /* ── 挨拶文・説明文 ── */
+  .pdf-greeting {
+    font-size: 12px;
+    color: #333333;
+    line-height: 1.9;
+    margin-bottom: 24px;
+  }
+
+  /* ── 見出しラベル（「■ 選択シリーズ一覧」など） ── */
+  .pdf-section-label {
+    font-size: 12px;
+    font-weight: 500;
+    color: #1A1A1A;
+    letter-spacing: 0.06em;
+    margin-bottom: 8px;
+    padding-left: 8px;
+    border-left: 3px solid #B8965A; /* ← 左の縦線色 */
+  }
+
+  /* ── サマリーテーブル（1ページ目：シリーズ一覧） ── */
+  .pdf-summary-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+    margin-bottom: 20px;
+  }
+  .pdf-summary-table thead tr {
+    background: #F0F0F0; /* ← テーブルヘッダー背景色 */
+  }
+  .pdf-summary-table th {
+    padding: 9px 14px;
+    text-align: left;
+    font-weight: 500;
+    font-size: 11px;
+    color: #444444;
+    letter-spacing: 0.06em;
+    border-bottom: 1px solid #CCCCCC;
+    border-top: 1px solid #CCCCCC;
+  }
+  .pdf-summary-table td {
+    padding: 10px 14px;
+    border-bottom: 1px solid #E8E8E8;
+    color: #1A1A1A;
+    font-size: 12px;
+  }
+  .pdf-summary-table tr:last-child td { border-bottom: 1px solid #CCCCCC; }
+  .pdf-summary-table .td-r { text-align: right; }
+  .pdf-summary-table .subtotal-row td {
+    background: #F9F9F9;
+    color: #333;
+    font-size: 11px;
+  }
+
+  /* ── 合計金額ボックス ── */
+  .pdf-total-area {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 24px;
+  }
+  .pdf-total-box {
+    border: 1px solid #CCCCCC;
+    min-width: 280px;
+  }
+  .pdf-total-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 9px 16px;
+    font-size: 12px;
+    color: #333;
+    border-bottom: 1px solid #E8E8E8;
+  }
+  .pdf-total-row:last-child { border-bottom: none; }
+  .pdf-total-row.grand {
+    background: #1A1A1A; /* ← 合計行の背景色 */
+    color: #FFFFFF;
+    padding: 12px 16px;
+  }
+  .pdf-total-row.grand .label { font-size: 12px; font-weight: 500; letter-spacing: 0.06em; }
+  .pdf-total-row.grand .value { font-size: 20px; font-weight: 500; letter-spacing: 0.02em; }
+  .pdf-total-row .label { color: #555; }
+  .pdf-total-row .value { font-weight: 500; color: #1A1A1A; }
+
+  /* ── 備考欄 ── */
+  .pdf-remarks-box {
+    border: 1px solid #CCCCCC;
+    padding: 12px 16px;
+    font-size: 12px;
+    color: #333333;
+    line-height: 1.9;
+    margin-bottom: 16px;
+  }
+  .pdf-remarks-label {
+    font-size: 11px;
+    font-weight: 500;
+    color: #888888;
+    letter-spacing: 0.06em;
+    margin-bottom: 6px;
+  }
+
+  /* ── 有効期限・注意書き ── */
+  .pdf-notes {
+    font-size: 10px;
+    color: #999999;
+    line-height: 1.8;
+  }
+
+  /* ── フッター（全ページ共通） ── */
+  .pdf-footer {
+    position: absolute;
+    bottom: 28px;
+    left: 64px;
+    right: 64px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 10px;
+    color: #AAAAAA;
+    border-top: 1px solid #E8E8E8;
+    padding-top: 8px;
+  }
+
+  /* ════════════════════════
+     2ページ目以降：明細ページ
+     ════════════════════════ */
+
+  /* ── 明細ページのヘッダー（ページ上部の会社名・タイトル） ── */
+  .pdf-detail-page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 28px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #CCCCCC;
+  }
+  .pdf-detail-page-header .left {
+    font-size: 11px;
+    color: #888888;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+  .pdf-detail-page-header .right {
+    font-size: 11px;
+    color: #888888;
+  }
+
+  /* ── シリーズブロック（各シリーズの囲い） ── */
+  .pdf-series-block {
+    margin-bottom: 32px;
+  }
+
+  /* ── シリーズ見出し（シリーズ名とプラン名） ── */
+  .pdf-series-heading {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #2C2C2C; /* ← シリーズ見出し背景色（濃いグレー） */
+    color: #FFFFFF;
+    padding: 11px 18px;
+    margin-bottom: 0;
+  }
+  .pdf-series-heading-name {
+    font-size: 14px;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    color: #FFFFFF;
+  }
+  .pdf-series-heading-name-en {
+    font-size: 10px;
+    color: #BBBBBB;
+    letter-spacing: 0.14em;
+    margin-left: 8px;
+  }
+  .pdf-plan-badge {
+    font-size: 10px;
+    background: #B8965A; /* ← プランバッジ色（ゴールド） */
+    color: #FFFFFF;
+    padding: 3px 10px;
+    letter-spacing: 0.06em;
+  }
+
+  /* ── 明細テーブル ── */
+  .pdf-detail-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+    border: 1px solid #CCCCCC;
+    border-top: none;
+    margin-bottom: 4px;
+  }
+  .pdf-detail-table th {
+    background: #F5F5F5; /* ← 明細テーブルヘッダー背景 */
+    color: #555555;
+    padding: 8px 14px;
+    text-align: left;
+    font-weight: 500;
+    font-size: 11px;
+    letter-spacing: 0.04em;
+    border-bottom: 1px solid #CCCCCC;
+  }
+  .pdf-detail-table td {
+    padding: 9px 14px;
+    border-bottom: 1px solid #EEEEEE;
+    color: #1A1A1A;
+    vertical-align: middle;
+    line-height: 1.5;
+  }
+  .pdf-detail-table tr:last-child td { border-bottom: none; }
+  .pdf-detail-table .td-r { text-align: right; }
+  .pdf-detail-table .td-c { text-align: center; }
+
+  /* 行の色（交互） */
+  .pdf-detail-table tbody tr:nth-child(even) td {
+    background: #FAFAFA;
+  }
+
+  /* ── 小計行 ── */
+  .pdf-subtotal-row {
+    text-align: right;
+    padding: 8px 14px;
+    font-size: 12px;
+    color: #555555;
+    border: 1px solid #CCCCCC;
+    border-top: none;
+    background: #F9F9F9;
+    margin-bottom: 0;
+  }
+  .pdf-subtotal-row strong {
+    color: #1A1A1A;
+    font-size: 13px;
+    margin-left: 8px;
+  }
+
+  /* ─── EMPTY STATE ─── */
+  .empty-state {
+    text-align: center;
+    padding: 40px;
+    color: var(--light);
+    font-size: 13px;
+    letter-spacing: 0.04em;
+  }
+
+  /* ─── RESPONSIVE ─── */
+  @media (max-width: 640px) {
+    .form-grid { grid-template-columns: 1fr; }
+    .series-add-row { grid-template-columns: 1fr; }
+    .add-item-row { grid-template-columns: 1fr auto; }
+    .container { padding: 20px 16px 60px; }
+    .total-amount { font-size: 26px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="app-header">
+  <div>
+    <div class="app-logo"><span>CHRISTINA</span> JAPAN</div>
+    <div class="header-sub">Estimate Generator</div>
+  </div>
+  <div style="font-size:11px;color:var(--light)">見積書作成ツール</div>
+</header>
+
+<div class="container">
+
+  <!-- ① 顧客情報 -->
+  <div class="section">
+    <div class="section-title">顧客情報</div>
+    <div class="form-grid">
+      <div class="form-group full">
+        <label>顧客名（サロン名）</label>
+        <input type="text" id="clientName" placeholder="例：ビューティーサロン〇〇" />
+        <span style="font-size:11px;color:var(--light);margin-top:2px">※ PDFに「〇〇　様」と表示されます</span>
+      </div>
+      <div class="form-group full">
+        <label>備考・特記事項（任意）</label>
+        <textarea id="remarks" placeholder="例：初回導入割引適用 / お支払いは月末締め翌月払い など"></textarea>
+      </div>
+    </div>
+    <div style="margin-top:12px;padding:10px 14px;background:var(--gold-pale);border-radius:8px;font-size:12px;color:var(--mid)">
+      📅 見積日は <strong>本日の日付（<span id="todayLabel"></span>）</strong> が自動で入ります
+    </div>
+  </div>
+
+  <!-- ② シリーズ選択 -->
+  <div class="section">
+    <div class="section-title">シリーズ・プラン選択</div>
+
+    <div class="series-add-row">
+      <div class="form-group">
+        <label>シリーズ</label>
+        <select id="selectSeries">
+          <option value="">── シリーズを選択 ──</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>プラン</label>
+        <select id="selectPlan">
+          <option value="">── プランを選択 ──</option>
+          <option value="basic">ベーシックプラン</option>
+          <option value="special">スペシャルプラン</option>
+          <option value="homecare">ホームケアプラン</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label style="visibility:hidden">追加</label>
+        <button class="btn btn-gold" onclick="addSeries()">＋ 追加</button>
+      </div>
+    </div>
+
+    <div id="seriesList" class="series-list">
+      <div class="empty-state">シリーズ・プランを選択して追加してください</div>
+    </div>
+  </div>
+
+  <!-- ③ 合計金額 -->
+  <div class="total-box" style="margin-bottom:24px;">
+    <div>
+      <div class="total-label">お見積り合計金額</div>
+      <div class="total-tax">（税込）</div>
+    </div>
+    <div style="text-align:right">
+      <div class="total-amount" id="totalDisplay">¥0</div>
+    </div>
+  </div>
+
+  <!-- ④ アクションボタン -->
+  <div class="action-bar">
+    <button class="btn btn-outline btn-lg" onclick="openPreview()">👁 プレビュー</button>
+    <button class="btn btn-pdf btn-lg" onclick="generatePDF()">📄 PDF 出力</button>
+  </div>
+
+</div>
+
+<!-- PREVIEW MODAL -->
+<div class="modal-overlay" id="previewModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>見積書プレビュー</h2>
+      <div style="display:flex;gap:10px;align-items:center">
+        <button class="btn btn-gold btn-sm" onclick="generatePDF()">PDF 出力</button>
+        <button class="btn-close" onclick="closePreview()">✕</button>
+      </div>
+    </div>
+    <div class="modal-body" id="previewContent"></div>
+  </div>
+</div>
+
+<!-- HIDDEN PDF ROOT -->
+<div id="pdf-root"></div>
+
+<script>
+// ════════════════════════════════════════════════════════════
+// ★★★ テンプレートデータ ★★★
+// ここを編集すると商品内容を変更できます
+// ════════════════════════════════════════════════════════════
+const SERIES_DATA = {
+  unstress: {
+    name: "アンストレス",
+    nameEn: "UNSTRESS",
+    basic: {
+      label: "ベーシックプラン",
+      items: [
+        { name: "アンストレス マッド クリンザー", qty: 2, unitPrice: 8800 },
+        { name: "アンストレス ハイドラリファイニング トナー", qty: 2, unitPrice: 9900 },
+        { name: "アンストレス カーミング セラム", qty: 1, unitPrice: 18700 },
+        { name: "アンストレス ハイドラリファイニング クリーム", qty: 1, unitPrice: 22000 },
+      ]
+    },
+    special: {
+      label: "スペシャルプラン",
+      items: [
+        { name: "アンストレス マッド クリンザー", qty: 2, unitPrice: 8800 },
+        { name: "アンストレス ハイドラリファイニング トナー", qty: 2, unitPrice: 9900 },
+        { name: "アンストレス カーミング セラム", qty: 2, unitPrice: 18700 },
+        { name: "アンストレス ハイドラリファイニング クリーム", qty: 2, unitPrice: 22000 },
+        { name: "アンストレス カーミング マスク", qty: 1, unitPrice: 14300 },
+        { name: "アンストレス アイ コントアクリーム", qty: 1, unitPrice: 16500 },
+      ]
+    },
+    homecare: {
+      label: "ホームケアプラン",
+      suggestions: [
+        { name: "アンストレス マッド クリンザー 150ml", qty: 1, unitPrice: 5500 },
+        { name: "アンストレス ハイドラリファイニング トナー 300ml", qty: 1, unitPrice: 6600 },
+        { name: "アンストレス カーミング セラム 30ml", qty: 1, unitPrice: 11000 },
+        { name: "アンストレス ハイドラリファイニング クリーム 50ml", qty: 1, unitPrice: 13200 },
+        { name: "アンストレス カーミング マスク 75ml", qty: 1, unitPrice: 8800 },
+      ]
+    }
+  },
+  biophyto: {
+    name: "ビオフィート",
+    nameEn: "BIOPHYTO",
+    basic: {
+      label: "ベーシックプラン",
+      items: [
+        { name: "ビオフィート ゼン クリンザー", qty: 2, unitPrice: 9200 },
+        { name: "ビオフィート ゼン トナー", qty: 2, unitPrice: 10100 },
+        { name: "ビオフィート ユース セラム", qty: 1, unitPrice: 21000 },
+        { name: "ビオフィート リジュベネーティング クリーム", qty: 1, unitPrice: 24000 },
+      ]
+    },
+    special: {
+      label: "スペシャルプラン",
+      items: [
+        { name: "ビオフィート ゼン クリンザー", qty: 2, unitPrice: 9200 },
+        { name: "ビオフィート ゼン トナー", qty: 2, unitPrice: 10100 },
+        { name: "ビオフィート ユース セラム", qty: 2, unitPrice: 21000 },
+        { name: "ビオフィート リジュベネーティング クリーム", qty: 2, unitPrice: 24000 },
+        { name: "ビオフィート フィトマスク", qty: 1, unitPrice: 15400 },
+        { name: "ビオフィート アイ コントア", qty: 1, unitPrice: 17600 },
+      ]
+    },
+    homecare: {
+      label: "ホームケアプラン",
+      suggestions: [
+        { name: "ビオフィート ゼン クリンザー 150ml", qty: 1, unitPrice: 5800 },
+        { name: "ビオフィート ゼン トナー 300ml", qty: 1, unitPrice: 6800 },
+        { name: "ビオフィート ユース セラム 30ml", qty: 1, unitPrice: 12500 },
+        { name: "ビオフィート リジュベネーティング クリーム 50ml", qty: 1, unitPrice: 14500 },
+        { name: "ビオフィート フィトマスク 75ml", qty: 1, unitPrice: 9200 },
+      ]
+    }
+  },
+  muse: {
+    name: "ミューズ",
+    nameEn: "MUSE",
+    basic: {
+      label: "ベーシックプラン",
+      items: [
+        { name: "ミューズ ミセラー クリンザー", qty: 2, unitPrice: 8500 },
+        { name: "ミューズ ブライトニング トナー", qty: 2, unitPrice: 9500 },
+        { name: "ミューズ ビタミン C セラム", qty: 1, unitPrice: 22000 },
+        { name: "ミューズ ホワイトニング クリーム", qty: 1, unitPrice: 25000 },
+      ]
+    },
+    special: {
+      label: "スペシャルプラン",
+      items: [
+        { name: "ミューズ ミセラー クリンザー", qty: 2, unitPrice: 8500 },
+        { name: "ミューズ ブライトニング トナー", qty: 2, unitPrice: 9500 },
+        { name: "ミューズ ビタミン C セラム", qty: 2, unitPrice: 22000 },
+        { name: "ミューズ ホワイトニング クリーム", qty: 2, unitPrice: 25000 },
+        { name: "ミューズ ブライトニング マスク", qty: 1, unitPrice: 16500 },
+        { name: "ミューズ アイ ブライトナー", qty: 1, unitPrice: 18700 },
+      ]
+    },
+    homecare: {
+      label: "ホームケアプラン",
+      suggestions: [
+        { name: "ミューズ ミセラー クリンザー 150ml", qty: 1, unitPrice: 5200 },
+        { name: "ミューズ ブライトニング トナー 300ml", qty: 1, unitPrice: 6300 },
+        { name: "ミューズ ビタミン C セラム 30ml", qty: 1, unitPrice: 13500 },
+        { name: "ミューズ ホワイトニング クリーム 50ml", qty: 1, unitPrice: 15500 },
+      ]
+    }
+  },
+  comodex: {
+    name: "コモデックス",
+    nameEn: "COMODEX",
+    basic: {
+      label: "ベーシックプラン",
+      items: [
+        { name: "コモデックス クリーン & マット クリンザー", qty: 2, unitPrice: 8800 },
+        { name: "コモデックス クリアリファイニング トナー", qty: 2, unitPrice: 9200 },
+        { name: "コモデックス カーミング セラム", qty: 1, unitPrice: 19800 },
+        { name: "コモデックス マット コントロール クリーム", qty: 1, unitPrice: 21000 },
+      ]
+    },
+    special: {
+      label: "スペシャルプラン",
+      items: [
+        { name: "コモデックス クリーン & マット クリンザー", qty: 2, unitPrice: 8800 },
+        { name: "コモデックス クリアリファイニング トナー", qty: 2, unitPrice: 9200 },
+        { name: "コモデックス カーミング セラム", qty: 2, unitPrice: 19800 },
+        { name: "コモデックス マット コントロール クリーム", qty: 2, unitPrice: 21000 },
+        { name: "コモデックス ポア ミニマイジング マスク", qty: 1, unitPrice: 15000 },
+        { name: "コモデックス スポット トリートメント", qty: 1, unitPrice: 11000 },
+      ]
+    },
+    homecare: {
+      label: "ホームケアプラン",
+      suggestions: [
+        { name: "コモデックス クリーン & マット クリンザー 150ml", qty: 1, unitPrice: 5500 },
+        { name: "コモデックス クリアリファイニング トナー 300ml", qty: 1, unitPrice: 5800 },
+        { name: "コモデックス カーミング セラム 30ml", qty: 1, unitPrice: 12000 },
+        { name: "コモデックス マット コントロール クリーム 50ml", qty: 1, unitPrice: 13000 },
+        { name: "コモデックス ポア ミニマイジング マスク 75ml", qty: 1, unitPrice: 9200 },
+      ]
+    }
+  },
+  illuminage: {
+    name: "イルミネイジ",
+    nameEn: "ILLUMINAGE",
+    basic: {
+      label: "ベーシックプラン",
+      items: [
+        { name: "イルミネイジ ラジアント クリンザー", qty: 2, unitPrice: 9500 },
+        { name: "イルミネイジ ルミノシティ トナー", qty: 2, unitPrice: 10500 },
+        { name: "イルミネイジ ブライトニング セラム", qty: 1, unitPrice: 24000 },
+        { name: "イルミネイジ ラジアント クリーム", qty: 1, unitPrice: 26000 },
+      ]
+    },
+    special: {
+      label: "スペシャルプラン",
+      items: [
+        { name: "イルミネイジ ラジアント クリンザー", qty: 2, unitPrice: 9500 },
+        { name: "イルミネイジ ルミノシティ トナー", qty: 2, unitPrice: 10500 },
+        { name: "イルミネイジ ブライトニング セラム", qty: 2, unitPrice: 24000 },
+        { name: "イルミネイジ ラジアント クリーム", qty: 2, unitPrice: 26000 },
+        { name: "イルミネイジ グロウ マスク", qty: 1, unitPrice: 17600 },
+        { name: "イルミネイジ アイ ブライトニング コンセントレート", qty: 1, unitPrice: 19800 },
+      ]
+    },
+    homecare: {
+      label: "ホームケアプラン",
+      suggestions: [
+        { name: "イルミネイジ ラジアント クリンザー 150ml", qty: 1, unitPrice: 6000 },
+        { name: "イルミネイジ ルミノシティ トナー 300ml", qty: 1, unitPrice: 7000 },
+        { name: "イルミネイジ ブライトニング セラム 30ml", qty: 1, unitPrice: 14500 },
+        { name: "イルミネイジ ラジアント クリーム 50ml", qty: 1, unitPrice: 16000 },
+      ]
+    }
+  },
+  platinum: {
+    name: "プラチナム",
+    nameEn: "PLATINUM",
+    basic: {
+      label: "ベーシックプラン",
+      items: [
+        { name: "プラチナム ラグジュアリー クリンザー", qty: 2, unitPrice: 12000 },
+        { name: "プラチナム エッセンシャル トナー", qty: 2, unitPrice: 13000 },
+        { name: "プラチナム ペプチド セラム", qty: 1, unitPrice: 35000 },
+        { name: "プラチナム ラグジュアリー クリーム", qty: 1, unitPrice: 42000 },
+      ]
+    },
+    special: {
+      label: "スペシャルプラン",
+      items: [
+        { name: "プラチナム ラグジュアリー クリンザー", qty: 2, unitPrice: 12000 },
+        { name: "プラチナム エッセンシャル トナー", qty: 2, unitPrice: 13000 },
+        { name: "プラチナム ペプチド セラム", qty: 2, unitPrice: 35000 },
+        { name: "プラチナム ラグジュアリー クリーム", qty: 2, unitPrice: 42000 },
+        { name: "プラチナム アンチエイジング マスク", qty: 1, unitPrice: 24000 },
+        { name: "プラチナム アイ リフティング コンセントレート", qty: 1, unitPrice: 28000 },
+      ]
+    },
+    homecare: {
+      label: "ホームケアプラン",
+      suggestions: [
+        { name: "プラチナム ラグジュアリー クリンザー 150ml", qty: 1, unitPrice: 7500 },
+        { name: "プラチナム エッセンシャル トナー 300ml", qty: 1, unitPrice: 8500 },
+        { name: "プラチナム ペプチド セラム 30ml", qty: 1, unitPrice: 22000 },
+        { name: "プラチナム ラグジュアリー クリーム 50ml", qty: 1, unitPrice: 26000 },
+        { name: "プラチナム アンチエイジング マスク 75ml", qty: 1, unitPrice: 15000 },
+      ]
+    }
+  },
+  royal: {
+    name: "ロイヤル",
+    nameEn: "ROYAL",
+    basic: {
+      label: "ベーシックプラン",
+      items: [
+        { name: "ロイヤル プレステージ クリンザー", qty: 2, unitPrice: 13500 },
+        { name: "ロイヤル プレステージ トナー", qty: 2, unitPrice: 14500 },
+        { name: "ロイヤル ゴールデン セラム", qty: 1, unitPrice: 44000 },
+        { name: "ロイヤル プレステージ クリーム", qty: 1, unitPrice: 55000 },
+      ]
+    },
+    special: {
+      label: "スペシャルプラン",
+      items: [
+        { name: "ロイヤル プレステージ クリンザー", qty: 2, unitPrice: 13500 },
+        { name: "ロイヤル プレステージ トナー", qty: 2, unitPrice: 14500 },
+        { name: "ロイヤル ゴールデン セラム", qty: 2, unitPrice: 44000 },
+        { name: "ロイヤル プレステージ クリーム", qty: 2, unitPrice: 55000 },
+        { name: "ロイヤル リフティング マスク", qty: 1, unitPrice: 29000 },
+        { name: "ロイヤル アイ & リップ コンセントレート", qty: 1, unitPrice: 33000 },
+      ]
+    },
+    homecare: {
+      label: "ホームケアプラン",
+      suggestions: [
+        { name: "ロイヤル プレステージ クリンザー 150ml", qty: 1, unitPrice: 8500 },
+        { name: "ロイヤル プレステージ トナー 300ml", qty: 1, unitPrice: 9500 },
+        { name: "ロイヤル ゴールデン セラム 30ml", qty: 1, unitPrice: 27000 },
+        { name: "ロイヤル プレステージ クリーム 50ml", qty: 1, unitPrice: 34000 },
+      ]
+    }
+  },
+  silk: {
+    name: "シルク",
+    nameEn: "SILK",
+    basic: {
+      label: "ベーシックプラン",
+      items: [
+        { name: "シルク スムース クリンザー", qty: 2, unitPrice: 8200 },
+        { name: "シルク スムース トナー", qty: 2, unitPrice: 9000 },
+        { name: "シルク ハイドレーティング セラム", qty: 1, unitPrice: 18000 },
+        { name: "シルク ベルベット クリーム", qty: 1, unitPrice: 22000 },
+      ]
+    },
+    special: {
+      label: "スペシャルプラン",
+      items: [
+        { name: "シルク スムース クリンザー", qty: 2, unitPrice: 8200 },
+        { name: "シルク スムース トナー", qty: 2, unitPrice: 9000 },
+        { name: "シルク ハイドレーティング セラム", qty: 2, unitPrice: 18000 },
+        { name: "シルク ベルベット クリーム", qty: 2, unitPrice: 22000 },
+        { name: "シルク モイスチャー マスク", qty: 1, unitPrice: 13200 },
+        { name: "シルク スムース アイ コントア", qty: 1, unitPrice: 15400 },
+      ]
+    },
+    homecare: {
+      label: "ホームケアプラン",
+      suggestions: [
+        { name: "シルク スムース クリンザー 150ml", qty: 1, unitPrice: 5000 },
+        { name: "シルク スムース トナー 300ml", qty: 1, unitPrice: 5800 },
+        { name: "シルク ハイドレーティング セラム 30ml", qty: 1, unitPrice: 11000 },
+        { name: "シルク ベルベット クリーム 50ml", qty: 1, unitPrice: 13500 },
+      ]
+    }
+  },
+  multipolar: {
+    name: "マルチポーラー",
+    nameEn: "MULTIPOLAR",
+    basic: {
+      label: "ベーシックプラン",
+      items: [
+        { name: "マルチポーラー アクティブ クリンザー", qty: 2, unitPrice: 9800 },
+        { name: "マルチポーラー コンダクティング トナー", qty: 2, unitPrice: 11000 },
+        { name: "マルチポーラー ファーミング セラム", qty: 1, unitPrice: 28000 },
+        { name: "マルチポーラー リフト & タイト クリーム", qty: 1, unitPrice: 33000 },
+      ]
+    },
+    special: {
+      label: "スペシャルプラン",
+      items: [
+        { name: "マルチポーラー アクティブ クリンザー", qty: 2, unitPrice: 9800 },
+        { name: "マルチポーラー コンダクティング トナー", qty: 2, unitPrice: 11000 },
+        { name: "マルチポーラー ファーミング セラム", qty: 2, unitPrice: 28000 },
+        { name: "マルチポーラー リフト & タイト クリーム", qty: 2, unitPrice: 33000 },
+        { name: "マルチポーラー コンタリング マスク", qty: 1, unitPrice: 19800 },
+        { name: "マルチポーラー アイ リフト", qty: 1, unitPrice: 22000 },
+      ]
+    },
+    homecare: {
+      label: "ホームケアプラン",
+      suggestions: [
+        { name: "マルチポーラー アクティブ クリンザー 150ml", qty: 1, unitPrice: 6200 },
+        { name: "マルチポーラー コンダクティング トナー 300ml", qty: 1, unitPrice: 7200 },
+        { name: "マルチポーラー ファーミング セラム 30ml", qty: 1, unitPrice: 17500 },
+        { name: "マルチポーラー リフト & タイト クリーム 50ml", qty: 1, unitPrice: 20500 },
+        { name: "マルチポーラー コンタリング マスク 75ml", qty: 1, unitPrice: 12500 },
+      ]
+    }
+  },
+  forever: {
+    name: "フォーエバー",
+    nameEn: "FOREVER YOUNG",
+    basic: {
+      label: "ベーシックプラン",
+      items: [
+        { name: "フォーエバー ユース クリンザー", qty: 2, unitPrice: 11000 },
+        { name: "フォーエバー ユース トナー", qty: 2, unitPrice: 12000 },
+        { name: "フォーエバー ユース セラム", qty: 1, unitPrice: 32000 },
+        { name: "フォーエバー ユース クリーム", qty: 1, unitPrice: 38000 },
+      ]
+    },
+    special: {
+      label: "スペシャルプラン",
+      items: [
+        { name: "フォーエバー ユース クリンザー", qty: 2, unitPrice: 11000 },
+        { name: "フォーエバー ユース トナー", qty: 2, unitPrice: 12000 },
+        { name: "フォーエバー ユース セラム", qty: 2, unitPrice: 32000 },
+        { name: "フォーエバー ユース クリーム", qty: 2, unitPrice: 38000 },
+        { name: "フォーエバー ユース マスク", qty: 1, unitPrice: 22000 },
+        { name: "フォーエバー ユース アイ コンセントレート", qty: 1, unitPrice: 25000 },
+      ]
+    },
+    homecare: {
+      label: "ホームケアプラン",
+      suggestions: [
+        { name: "フォーエバー ユース クリンザー 150ml", qty: 1, unitPrice: 7000 },
+        { name: "フォーエバー ユース トナー 300ml", qty: 1, unitPrice: 8000 },
+        { name: "フォーエバー ユース セラム 30ml", qty: 1, unitPrice: 20000 },
+        { name: "フォーエバー ユース クリーム 50ml", qty: 1, unitPrice: 24000 },
+        { name: "フォーエバー ユース マスク 75ml", qty: 1, unitPrice: 14000 },
+      ]
+    }
+  }
+};
+
+// ════════════════════════════════════════
+// 状態管理
+// ════════════════════════════════════════
+let selectedSeries = []; // { id, seriesKey, planKey, items: [{name,qty,unitPrice}] }
+let itemCounter = 0;
+
+// ════════════════════════════════════════
+// 初期化（日付は自動設定）
+// ════════════════════════════════════════
+(function init() {
+  // シリーズ選択肢を生成
+  const sel = document.getElementById('selectSeries');
+  Object.entries(SERIES_DATA).forEach(([key, s]) => {
+    const opt = document.createElement('option');
+    opt.value = key;
+    opt.textContent = s.name;
+    sel.appendChild(opt);
+  });
+  // 今日の日付を表示ラベルにセット
+  const today = new Date();
+  const label = `${today.getFullYear()}年${today.getMonth()+1}月${today.getDate()}日`;
+  const el = document.getElementById('todayLabel');
+  if (el) el.textContent = label;
+})();
+
+// ════════════════════════════════════════
+// シリーズ追加
+// ════════════════════════════════════════
+function addSeries() {
+  const seriesKey = document.getElementById('selectSeries').value;
+  const planKey = document.getElementById('selectPlan').value;
+  if (!seriesKey || !planKey) {
+    alert('シリーズとプランを両方選択してください。');
+    return;
+  }
+  const series = SERIES_DATA[seriesKey];
+  const planData = series[planKey];
+  const id = ++itemCounter;
+  let items = planKey === 'homecare'
+    ? planData.suggestions.map(i => ({ ...i }))
+    : planData.items.map(i => ({ ...i }));
+
+  selectedSeries.push({ id, seriesKey, planKey, items });
+  renderSeriesList();
+  updateTotal();
+}
+
+function removeSeries(id) {
+  selectedSeries = selectedSeries.filter(s => s.id !== id);
+  renderSeriesList();
+  updateTotal();
+}
+
+// ════════════════════════════════════════
+// 描画
+// ════════════════════════════════════════
+function renderSeriesList() {
+  const container = document.getElementById('seriesList');
+  if (selectedSeries.length === 0) {
+    container.innerHTML = '<div class="empty-state">シリーズ・プランを選択して追加してください</div>';
+    return;
+  }
+  container.innerHTML = selectedSeries.map(s => renderSeriesCard(s)).join('');
+}
+
+function renderSeriesCard(s) {
+  const series = SERIES_DATA[s.seriesKey];
+  const planLabel = { basic: 'ベーシック', special: 'スペシャル', homecare: 'ホームケア' }[s.planKey];
+  const isFixed = s.planKey !== 'homecare';
+  const subtotal = calcSubtotal(s);
+
+  const rows = s.items.map((item, idx) => {
+    const amount = item.qty * item.unitPrice;
+    if (isFixed) {
+      return `<tr>
+        <td>${item.name}</td>
+        <td style="text-align:center">${item.qty}</td>
+        <td class="amount">¥${num(item.unitPrice)}</td>
+        <td class="amount">¥${num(amount)}</td>
+        <td></td>
+      </tr>`;
+    } else {
+      return `<tr>
+        <td><input type="text" value="${item.name}" onchange="updateItem(${s.id},${idx},'name',this.value)" /></td>
+        <td><input type="number" value="${item.qty}" min="1" onchange="updateItem(${s.id},${idx},'qty',this.value)" /></td>
+        <td class="amount"><input type="number" value="${item.unitPrice}" min="0" step="100" style="width:100px;text-align:right" onchange="updateItem(${s.id},${idx},'unitPrice',this.value)" /></td>
+        <td class="amount" id="amt_${s.id}_${idx}">¥${num(amount)}</td>
+        <td><button class="btn btn-danger" onclick="removeItem(${s.id},${idx})">削除</button></td>
+      </tr>`;
+    }
+  }).join('');
+
+  const suggestionChips = s.planKey === 'homecare'
+    ? `<div class="suggestions">
+        <span style="font-weight:400;color:var(--mid);margin-right:4px">候補商品を追加：</span>
+        ${SERIES_DATA[s.seriesKey].homecare.suggestions.map((sg, si) =>
+          `<span class="suggestion-chip" onclick="addSuggestion(${s.id},'${sg.name.replace(/'/g,"\\'")}',${sg.unitPrice})">${sg.name}</span>`
+        ).join('')}
+      </div>` : '';
+
+  const addRow = s.planKey === 'homecare'
+    ? `<tr>
+        <td colspan="5" style="padding:0">
+          <div class="add-item-row">
+            <input type="text" id="newName_${s.id}" placeholder="商品名" />
+            <input type="number" id="newQty_${s.id}" placeholder="数量" value="1" min="1" style="width:100%" />
+            <input type="number" id="newPrice_${s.id}" placeholder="単価" min="0" step="100" style="width:100%" />
+            <button class="btn btn-gold btn-sm" onclick="addItem(${s.id})">＋</button>
+          </div>
+        </td>
+      </tr>` : '';
+
+  const fixedNote = isFixed
+    ? `<div style="font-size:11px;color:var(--light);margin-bottom:8px">
+        <span class="fixed-badge">固定プラン</span> 内容は自動で設定されています
+      </div>` : '';
+
+  return `
+    <div class="series-card" id="card_${s.id}">
+      <div class="series-card-header">
+        <div style="display:flex;align-items:center;gap:8px">
+          <span class="series-card-title">${series.name}</span>
+          <span style="font-size:12px;color:var(--gold-light);letter-spacing:0.1em">${series.nameEn}</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span class="series-card-plan">${planLabel}</span>
+          <button class="btn btn-danger" onclick="removeSeries(${s.id})">✕ 削除</button>
+        </div>
+      </div>
+      <div class="series-card-body">
+        ${fixedNote}
+        ${suggestionChips}
+        <table class="items-table">
+          <thead>
+            <tr>
+              <th style="width:45%">商品名</th>
+              <th style="width:8%;text-align:center">数量</th>
+              <th style="width:18%;text-align:right">単価（税込）</th>
+              <th style="width:18%;text-align:right">金額</th>
+              <th style="width:11%"></th>
+            </tr>
+          </thead>
+          <tbody>${rows}</tbody>
+          ${addRow}
+        </table>
+        <div class="subtotal-row">
+          小計：<span class="subtotal-amount" id="sub_${s.id}">¥${num(subtotal)}</span>
+        </div>
+      </div>
+    </div>`;
+}
+
+// ════════════════════════════════════════
+// アイテム操作
+// ════════════════════════════════════════
+function updateItem(id, idx, field, value) {
+  const s = selectedSeries.find(s => s.id === id);
+  if (!s) return;
+  if (field === 'qty') s.items[idx].qty = parseInt(value) || 0;
+  else if (field === 'unitPrice') s.items[idx].unitPrice = parseFloat(value) || 0;
+  else s.items[idx].name = value;
+  const amt = s.items[idx].qty * s.items[idx].unitPrice;
+  const amtEl = document.getElementById(`amt_${id}_${idx}`);
+  if (amtEl) amtEl.textContent = '¥' + num(amt);
+  const subEl = document.getElementById(`sub_${id}`);
+  if (subEl) subEl.textContent = '¥' + num(calcSubtotal(s));
+  updateTotal();
+}
+
+function removeItem(id, idx) {
+  const s = selectedSeries.find(s => s.id === id);
+  if (!s) return;
+  s.items.splice(idx, 1);
+  renderSeriesList();
+  updateTotal();
+}
+
+function addItem(id) {
+  const s = selectedSeries.find(s => s.id === id);
+  if (!s) return;
+  const name = document.getElementById(`newName_${id}`).value.trim();
+  const qty = parseInt(document.getElementById(`newQty_${id}`).value) || 1;
+  const price = parseFloat(document.getElementById(`newPrice_${id}`).value) || 0;
+  if (!name) { alert('商品名を入力してください。'); return; }
+  s.items.push({ name, qty, unitPrice: price });
+  renderSeriesList();
+  updateTotal();
+}
+
+function addSuggestion(id, name, unitPrice) {
+  const s = selectedSeries.find(s => s.id === id);
+  if (!s) return;
+  if (s.items.find(i => i.name === name)) return;
+  s.items.push({ name, qty: 1, unitPrice });
+  renderSeriesList();
+  updateTotal();
+}
+
+// ════════════════════════════════════════
+// 計算
+// ════════════════════════════════════════
+function calcSubtotal(s) {
+  return s.items.reduce((sum, i) => sum + i.qty * i.unitPrice, 0);
+}
+
+function calcTotal() {
+  return selectedSeries.reduce((sum, s) => sum + calcSubtotal(s), 0);
+}
+
+function updateTotal() {
+  document.getElementById('totalDisplay').textContent = '¥' + num(calcTotal());
+}
+
+function num(n) {
+  return Number(n).toLocaleString('ja-JP');
+}
+
+// ════════════════════════════════════════
+// プレビュー
+// ════════════════════════════════════════
+function openPreview() {
+  const html = buildEstimateHTML();
+  document.getElementById('previewContent').innerHTML = html;
+  document.getElementById('previewModal').classList.add('open');
+}
+function closePreview() {
+  document.getElementById('previewModal').classList.remove('open');
+}
+
+// ════════════════════════════════════════
+// 見積書HTML生成（雛形に合わせたレイアウト）
+// ▼ PDF内の文言・レイアウトを変えるならここ ▼
+// ════════════════════════════════════════
+function buildEstimateHTML() {
+  const clientName = document.getElementById('clientName').value.trim() || '　';
+  const remarks    = document.getElementById('remarks').value.trim();
+  const total      = calcTotal();
+  const tax        = Math.round(total / 11);        // 消費税（税込÷11 で端数処理）
+  const preTax     = total - tax;                   // 税抜合計
+
+  // 今日の日付を自動生成
+  const today = new Date();
+  const issueDate = `${today.getFullYear()}年${today.getMonth()+1}月${today.getDate()}日`;
+
+  // ── 明細行を生成（全シリーズのアイテムをフラットに並べる）──
+  // シリーズごとにグループ行＋商品行を出力
+  let detailRows = '';
+  let rowIndex = 0;
+  selectedSeries.forEach(s => {
+    const series    = SERIES_DATA[s.seriesKey];
+    const planLabel = { basic: 'ベーシックプラン', special: 'スペシャルプラン', homecare: 'ホームケアプラン' }[s.planKey];
+
+    // シリーズ名ヘッダー行
+    detailRows += `
+      <tr class="series-group-row">
+        <td colspan="4" style="background:#f0f0f0;font-size:11px;font-weight:500;padding:6px 10px;color:#333;letter-spacing:0.04em;">
+          【${series.name}　${series.nameEn}】${planLabel}
+        </td>
+      </tr>`;
+
+    // 商品行
+    s.items.forEach(item => {
+      const amount = item.qty * item.unitPrice;
+      const bg = rowIndex % 2 === 0 ? '#ffffff' : '#fafafa';
+      detailRows += `
+        <tr style="background:${bg}">
+          <td style="padding:9px 10px;border-bottom:1px solid #e8e8e8;font-size:12px;">${item.name}</td>
+          <td style="padding:9px 10px;border-bottom:1px solid #e8e8e8;font-size:12px;text-align:center;">${item.qty}</td>
+          <td style="padding:9px 10px;border-bottom:1px solid #e8e8e8;font-size:12px;text-align:right;">¥${num(item.unitPrice)}</td>
+          <td style="padding:9px 10px;border-bottom:1px solid #e8e8e8;font-size:12px;text-align:right;">¥${num(amount)}</td>
+        </tr>`;
+      rowIndex++;
+    });
+  });
+
+  // 行が少ない場合に空行を追加して見た目を整える（最低8行）
+  const totalItems = selectedSeries.reduce((n, s) => n + s.items.length + 1, 0); // +1はグループ行
+  const minRows = 8;
+  for (let i = totalItems; i < minRows; i++) {
+    const bg = rowIndex % 2 === 0 ? '#ffffff' : '#fafafa';
+    detailRows += `
+      <tr style="background:${bg}">
+        <td style="padding:9px 10px;border-bottom:1px solid #e8e8e8;height:34px;">&nbsp;</td>
+        <td style="padding:9px 10px;border-bottom:1px solid #e8e8e8;"></td>
+        <td style="padding:9px 10px;border-bottom:1px solid #e8e8e8;"></td>
+        <td style="padding:9px 10px;border-bottom:1px solid #e8e8e8;"></td>
+      </tr>`;
+    rowIndex++;
+  }
+
+  const remarksHtml = remarks
+    ? `<div style="white-space:pre-wrap;font-size:12px;color:#333;">${remarks}</div>`
+    : `<div style="font-size:12px;color:#ccc;">（備考なし）</div>`;
+
+  // ── PDF 1枚のHTML（雛形レイアウト） ──
+  return `
+  <div id="estimate-html">
+  <div class="pdf-page" style="
+    width:794px;
+    min-height:1123px;
+    padding:48px 56px 56px;
+    background:#ffffff;
+    position:relative;
+    font-family:'Noto Sans JP',sans-serif;
+    font-size:13px;
+    color:#1a1a1a;
+    box-sizing:border-box;
+  ">
+
+    <!-- タイトル -->
+    <div style="text-align:center;margin-bottom:28px;">
+      <div style="font-size:26px;font-weight:700;letter-spacing:0.3em;color:#1a1a1a;">御　見　積　書</div>
+    </div>
+
+    <!-- 上部：顧客情報（左）+ 会社情報（右） -->
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px;">
+
+      <!-- 左：顧客名・件名・説明 -->
+      <div style="flex:1;">
+        <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:14px;">
+          <div style="width:14px;height:14px;border-radius:50%;background:#1a1a1a;flex-shrink:0;margin-top:2px;"></div>
+          <div style="font-size:17px;font-weight:500;letter-spacing:0.06em;border-bottom:1.5px solid #1a1a1a;padding-bottom:2px;min-width:200px;">
+            ${clientName}　様
+          </div>
+        </div>
+        <div style="margin-bottom:6px;">
+          <span style="font-size:12px;color:#555;margin-right:8px;">件　名</span>
+          <span style="font-size:13px;font-weight:500;text-decoration:underline;">クリスティーナ化粧品初期導入セット</span>
+        </div>
+        <div style="font-size:12px;color:#333;margin-top:10px;line-height:1.6;">
+          下記のとおり、御見積を申し上げます。
+        </div>
+        <div style="margin-top:14px;font-size:11.5px;color:#333;line-height:2.0;">
+          <div>納期：<span style="margin-left:1em;">別途ご相談</span></div>
+          <div>支払い条件：<span style="margin-left:1em;">銀行振り込み</span></div>
+          <div>見積り有効期限：<span style="margin-left:1em;">本見積書発行より１ヶ月以内</span></div>
+        </div>
+      </div>
+
+      <!-- 右：見積日・会社情報 -->
+      <div style="flex:0 0 230px;text-align:right;font-size:11.5px;color:#333;line-height:2.0;">
+        <div style="margin-bottom:6px;">見積日　${issueDate}</div>
+        <div style="font-size:13px;font-weight:700;color:#1a1a1a;margin-bottom:4px;">株式会社クリスティーナジャパン</div>
+        <div style="font-size:11px;color:#555;line-height:1.7;">
+          〒141-0001<br>
+          東京都品川区北品川5-1-18<br>
+          住友不動産大崎ツインビル東館7F<br>
+          TEL：03-6812-9867<br>
+          FAX：03-6332-9046
+        </div>
+      </div>
+    </div>
+
+    <!-- 合計金額ボックス（税抜合計・消費税・支払総額） -->
+    <table style="width:100%;border-collapse:collapse;margin-bottom:16px;font-size:12.5px;">
+      <thead>
+        <tr>
+          <th style="border:1px solid #bbb;padding:8px 12px;background:#f0f0f0;font-weight:500;text-align:center;width:33%;">税抜合計金額</th>
+          <th style="border:1px solid #bbb;padding:8px 12px;background:#f0f0f0;font-weight:500;text-align:center;width:33%;">消費税（10%）</th>
+          <th style="border:1px solid #bbb;padding:8px 12px;background:#f0f0f0;font-weight:500;text-align:center;width:34%;">支払総額</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td style="border:1px solid #bbb;padding:10px 12px;text-align:center;font-size:14px;font-weight:500;">¥${num(preTax)}</td>
+          <td style="border:1px solid #bbb;padding:10px 12px;text-align:center;font-size:14px;font-weight:500;">¥${num(tax)}</td>
+          <td style="border:1px solid #bbb;padding:10px 12px;text-align:center;font-size:14px;font-weight:700;color:#1a1a1a;">¥${num(total)}</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- 明細テーブル -->
+    <table style="width:100%;border-collapse:collapse;font-size:12px;margin-bottom:12px;">
+      <thead>
+        <tr>
+          <th style="border:1px solid #bbb;padding:8px 10px;background:#f0f0f0;font-weight:500;text-align:center;width:52%;">シリーズ詳細</th>
+          <th style="border:1px solid #bbb;padding:8px 10px;background:#f0f0f0;font-weight:500;text-align:center;width:10%;">数量</th>
+          <th style="border:1px solid #bbb;padding:8px 10px;background:#f0f0f0;font-weight:500;text-align:center;width:19%;">単価（税込）</th>
+          <th style="border:1px solid #bbb;padding:8px 10px;background:#f0f0f0;font-weight:500;text-align:center;width:19%;">合計（税込）</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${detailRows}
+      </tbody>
+    </table>
+
+    <!-- 備考欄 -->
+    <div style="border:1px solid #bbb;padding:10px 14px;min-height:56px;margin-bottom:24px;font-size:12px;color:#333;line-height:1.8;">
+      ${remarksHtml}
+    </div>
+
+    <!-- 下部：CHRISTINAロゴライン -->
+    <div style="
+      position:absolute;
+      bottom:36px;
+      left:56px;
+      right:56px;
+      border-top:1px solid #ccc;
+      padding-top:10px;
+      display:flex;
+      justify-content:flex-end;
+      align-items:center;
+    ">
+      <div style="font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:300;letter-spacing:0.22em;color:#1a1a1a;">—CHRISTINA—</div>
+    </div>
+
+  </div>
+  </div>`;
+}
+function formatDate(val) {
+  if (!val) return '─';
+  const d = new Date(val);
+  return `${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日`;
+}
+
+// ════════════════════════════════════════
+// PDF出力
+// ════════════════════════════════════════
+async function generatePDF() {
+  if (selectedSeries.length === 0) {
+    alert('シリーズを1つ以上追加してからPDF出力してください。');
+    return;
+  }
+
+  const btn = document.querySelector('.btn-pdf');
+  const originalText = btn.innerHTML;
+  btn.innerHTML = '⏳ 生成中...';
+  btn.disabled = true;
+
+  try {
+    const { jsPDF } = window.jspdf;
+    // A4サイズ（mm単位）
+    const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+
+    const pdfRoot = document.getElementById('pdf-root');
+    pdfRoot.innerHTML = `
+      <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500&display=swap" rel="stylesheet">
+      ${buildEstimateHTML()}
+    `;
+    pdfRoot.style.display = 'block';
+
+    // フォント読み込み待機
+    await document.fonts.ready;
+    await new Promise(r => setTimeout(r, 1000));
+
+    const pages = pdfRoot.querySelectorAll('.pdf-page');
+    const pdfW  = pdf.internal.pageSize.getWidth();   // 210mm
+    const pdfH  = pdf.internal.pageSize.getHeight();  // 297mm
+
+    for (let i = 0; i < pages.length; i++) {
+      const canvas = await html2canvas(pages[i], {
+        scale: 2.5,           // 高解像度（数字を大きくするほど鮮明になるが重くなる）
+        useCORS: true,
+        backgroundColor: '#ffffff',
+        logging: false,
+        width: 794,
+        windowWidth: 794,
+      });
+      const imgData = canvas.toDataURL('image/jpeg', 0.98);
+      if (i > 0) pdf.addPage();
+      pdf.addImage(imgData, 'JPEG', 0, 0, pdfW, pdfH);
+    }
+
+    const clientName = document.getElementById('clientName').value || '見積書';
+    const dateStr    = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+    pdf.save(`${clientName}_御見積書_${dateStr}.pdf`);
+
+  } catch (e) {
+    console.error(e);
+    alert('PDF生成中にエラーが発生しました。もう一度お試しください。');
+  } finally {
+    const pdfRoot = document.getElementById('pdf-root');
+    pdfRoot.style.display = 'none';
+    pdfRoot.innerHTML = '';
+    btn.innerHTML = originalText;
+    btn.disabled = false;
+  }
+}
+</script>
+</body>
+</html>
