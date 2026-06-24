@@ -754,6 +754,28 @@
     margin-left: 8px;
   }
 
+  /* ─── 掛け率ボタン ─── */
+  .rate-btn {
+    border: 2px solid var(--border);
+    border-radius: 8px;
+    padding: 8px 14px;
+    font-size: 12px;
+    font-family: 'Noto Sans JP', sans-serif;
+    font-weight: 400;
+    cursor: pointer;
+    background: var(--warm-white);
+    color: var(--mid);
+    transition: all 0.15s;
+    letter-spacing: 0.03em;
+  }
+  .rate-btn:hover { border-color: var(--gold); color: var(--gold); }
+  .rate-btn.active {
+    border-color: var(--gold);
+    background: var(--gold);
+    color: white;
+    font-weight: 500;
+  }
+
   /* ─── EMPTY STATE ─── */
   .empty-state {
     text-align: center;
@@ -793,7 +815,7 @@
       <div class="form-group full">
         <label>顧客名（サロン名）</label>
         <input type="text" id="clientName" placeholder="例：ビューティーサロン〇〇" />
-        <span style="font-size:11px;color:var(--light);margin-top:2px">※ PDFに「〇〇　様」と表示されます</span>
+        <span style="font-size:11px;color:var(--light);margin-top:2px">※ PDFに「〇〇　様」と表示され、ファイル名も「〇〇様_御見積書_日付.pdf」になります</span>
       </div>
       <div class="form-group full">
         <label>備考・特記事項（任意）</label>
@@ -805,7 +827,26 @@
     </div>
   </div>
 
-  <!-- ② シリーズ選択 -->
+  <!-- ② 掛け率設定 -->
+  <div class="section" style="padding:20px 28px;margin-bottom:20px;">
+    <div class="section-title" style="margin-bottom:14px;">店販製品の掛け率設定</div>
+    <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
+      <div style="font-size:13px;color:var(--mid);">適用する掛け率：</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;" id="rate-buttons">
+        <button class="rate-btn active" data-rate="0.5"  onclick="setRate(0.5)">5掛け（50%）</button>
+        <button class="rate-btn"        data-rate="0.55" onclick="setRate(0.55)">5.5掛け（55%）</button>
+        <button class="rate-btn active" data-rate="0.6"  onclick="setRate(0.6)">6掛け（60%）</button>
+        <button class="rate-btn"        data-rate="0.65" onclick="setRate(0.65)">6.5掛け（65%）</button>
+        <button class="rate-btn"        data-rate="0.7"  onclick="setRate(0.7)">7掛け（70%）</button>
+        <button class="rate-btn"        data-rate="1.0"  onclick="setRate(1.0)">定価（100%）</button>
+      </div>
+    </div>
+    <div style="margin-top:10px;font-size:11px;color:var(--light);">
+      ※ ホームケア商材（retailPriceがある商品）の仕入価格に適用されます。変更すると追加済みのシリーズも自動で更新されます。
+    </div>
+  </div>
+
+  <!-- ③ シリーズ選択 -->
   <div class="section">
     <div class="section-title">シリーズ・プラン選択</div>
 
@@ -823,6 +864,7 @@
           <option value="basic">ベーシックプラン</option>
           <option value="special">スペシャルプラン</option>
           <option value="homecare">ホームケアプラン</option>
+          <option value="gyomu">業務用プラン</option>
         </select>
       </div>
       <div class="form-group">
@@ -836,7 +878,86 @@
     </div>
   </div>
 
-  <!-- ③ 合計金額 -->
+  <!-- ③ 講習費・発行費設定 -->
+  <div class="section">
+    <div class="section-title">講習費・発行費の設定</div>
+    <div style="font-size:12px;color:var(--mid);margin-bottom:16px;">各項目の個数を設定してください（0でも可）。PDFの1ページ目に自動で反映されます。</div>
+    <div style="display:grid;grid-template-columns:1fr;gap:12px;">
+
+      <!-- 講習費 55,000円（業務＋店販） -->
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border:1px solid var(--border);border-radius:10px;background:var(--warm-white);">
+        <div>
+          <div style="font-size:13px;font-weight:400;color:var(--charcoal);">講習費（ディプロマ発行費を含む）</div>
+          <div style="font-size:12px;color:var(--mid);margin-top:2px;">¥55,000 / 回</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <button class="btn btn-outline" style="padding:6px 14px;font-size:18px;line-height:1;" onclick="changeLesson('lesson55',-1)">−</button>
+          <span id="lesson55-display" style="font-size:16px;font-weight:500;min-width:28px;text-align:center;">0</span>
+          <button class="btn btn-gold" style="padding:6px 14px;font-size:18px;line-height:1;" onclick="changeLesson('lesson55',1)">＋</button>
+          <span style="font-size:12px;color:var(--mid);min-width:80px;text-align:right;" id="lesson55-subtotal">¥0</span>
+        </div>
+      </div>
+
+      <!-- 講習費 52,800円（業務＋店販・新価格） -->
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border:1px solid var(--border);border-radius:10px;background:var(--warm-white);">
+        <div>
+          <div style="font-size:13px;font-weight:400;color:var(--charcoal);">講習費（業店）</div>
+          <div style="font-size:12px;color:var(--mid);margin-top:2px;">¥52,800 / 回</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <button class="btn btn-outline" style="padding:6px 14px;font-size:18px;line-height:1;" onclick="changeLesson('lesson528',-1)">−</button>
+          <span id="lesson528-display" style="font-size:16px;font-weight:500;min-width:28px;text-align:center;">0</span>
+          <button class="btn btn-gold" style="padding:6px 14px;font-size:18px;line-height:1;" onclick="changeLesson('lesson528',1)">＋</button>
+          <span style="font-size:12px;color:var(--mid);min-width:80px;text-align:right;" id="lesson528-subtotal">¥0</span>
+        </div>
+      </div>
+
+      <!-- 講習費 27,500円（店販のみ） -->
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border:1px solid var(--border);border-radius:10px;background:var(--warm-white);">
+        <div>
+          <div style="font-size:13px;font-weight:400;color:var(--charcoal);">講習費（店販のみ）</div>
+          <div style="font-size:12px;color:var(--mid);margin-top:2px;">¥27,500 / 回</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <button class="btn btn-outline" style="padding:6px 14px;font-size:18px;line-height:1;" onclick="changeLesson('lesson27',-1)">−</button>
+          <span id="lesson27-display" style="font-size:16px;font-weight:500;min-width:28px;text-align:center;">0</span>
+          <button class="btn btn-gold" style="padding:6px 14px;font-size:18px;line-height:1;" onclick="changeLesson('lesson27',1)">＋</button>
+          <span style="font-size:12px;color:var(--mid);min-width:80px;text-align:right;" id="lesson27-subtotal">¥0</span>
+        </div>
+      </div>
+
+      <!-- 講習費 25,300円（店販のみ・新価格） -->
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border:1px solid var(--border);border-radius:10px;background:var(--warm-white);">
+        <div>
+          <div style="font-size:13px;font-weight:400;color:var(--charcoal);">講習費（店のみ）</div>
+          <div style="font-size:12px;color:var(--mid);margin-top:2px;">¥25,300 / 回</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <button class="btn btn-outline" style="padding:6px 14px;font-size:18px;line-height:1;" onclick="changeLesson('lesson253',-1)">−</button>
+          <span id="lesson253-display" style="font-size:16px;font-weight:500;min-width:28px;text-align:center;">0</span>
+          <button class="btn btn-gold" style="padding:6px 14px;font-size:18px;line-height:1;" onclick="changeLesson('lesson253',1)">＋</button>
+          <span style="font-size:12px;color:var(--mid);min-width:80px;text-align:right;" id="lesson253-subtotal">¥0</span>
+        </div>
+      </div>
+
+      <!-- ディプロマ発行費 2,200円 -->
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border:1px solid var(--border);border-radius:10px;background:var(--warm-white);">
+        <div>
+          <div style="font-size:13px;font-weight:400;color:var(--charcoal);">ディプロマ発行費</div>
+          <div style="font-size:12px;color:var(--mid);margin-top:2px;">¥2,200 / 通</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <button class="btn btn-outline" style="padding:6px 14px;font-size:18px;line-height:1;" onclick="changeLesson('diploma',-1)">−</button>
+          <span id="diploma-display" style="font-size:16px;font-weight:500;min-width:28px;text-align:center;">0</span>
+          <button class="btn btn-gold" style="padding:6px 14px;font-size:18px;line-height:1;" onclick="changeLesson('diploma',1)">＋</button>
+          <span style="font-size:12px;color:var(--mid);min-width:80px;text-align:right;" id="diploma-subtotal">¥0</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ④ 合計金額 -->
   <div class="total-box" style="margin-bottom:24px;">
     <div>
       <div class="total-label">お見積り合計金額</div>
@@ -847,10 +968,42 @@
     </div>
   </div>
 
-  <!-- ④ アクションボタン -->
+  <!-- ④ 書類種別選択 -->
+  <div class="section" style="padding:20px 28px;margin-bottom:20px;">
+    <div class="section-title" style="margin-bottom:14px;">書類の種類を選択</div>
+    <div style="display:flex;gap:12px;flex-wrap:wrap;">
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer;padding:10px 18px;border:2px solid var(--gold);border-radius:8px;background:var(--gold);color:white;font-size:13px;font-weight:400;letter-spacing:0.04em;">
+        <input type="radio" name="docType" value="estimate" checked onchange="updateDocType(this.value)" style="accent-color:white;" />
+        📋 お見積書
+      </label>
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer;padding:10px 18px;border:2px solid var(--border);border-radius:8px;background:var(--warm-white);color:var(--mid);font-size:13px;font-weight:400;letter-spacing:0.04em;" id="label-order">
+        <input type="radio" name="docType" value="order" onchange="updateDocType(this.value)" style="accent-color:var(--gold);" />
+        📦 発注書
+      </label>
+    </div>
+    <div style="margin-top:10px;font-size:11px;color:var(--light);">
+      お見積書：お客様に送る見積書形式 ／ 発注書：社内用の発注・仕入れ管理形式
+    </div>
+  </div>
+
+  <!-- ⑤ アクションボタン -->
   <div class="action-bar">
     <button class="btn btn-outline btn-lg" onclick="openPreview()">👁 プレビュー</button>
     <button class="btn btn-pdf btn-lg" onclick="generatePDF()">📄 PDF 出力</button>
+    <button class="btn btn-lg" id="driveBtn" onclick="uploadToDrive()" style="background:#34A853;color:white;border:none;">
+      📤 Driveに保存してURLコピー
+    </button>
+  </div>
+
+  <!-- Drive結果表示 -->
+  <div id="driveResult" style="display:none;margin-top:16px;padding:16px 20px;background:#F0FFF4;border:1px solid #34A853;border-radius:10px;text-align:center;">
+    <div style="font-size:13px;color:#1a1a1a;margin-bottom:10px;">✅ Google Driveに保存しました！</div>
+    <div style="display:flex;gap:8px;justify-content:center;align-items:center;flex-wrap:wrap;">
+      <input type="text" id="driveUrl" readonly style="flex:1;min-width:200px;max-width:400px;padding:8px 12px;border:1px solid #34A853;border-radius:6px;font-size:12px;background:white;" />
+      <button class="btn btn-gold btn-sm" onclick="copyDriveUrl()">📋 URLをコピー</button>
+      <a id="driveLink" href="#" target="_blank" class="btn btn-outline btn-sm">🔗 Driveで開く</a>
+    </div>
+    <div style="margin-top:8px;font-size:11px;color:#555;">このURLをLINEでお客様に送ってください</div>
   </div>
 
 </div>
@@ -876,6 +1029,21 @@
 // ════════════════════════════════════════════════════════════
 // ★★★ テンプレートデータ ★★★
 // ここを編集すると商品内容を変更できます
+// ※ このデータはExcelオーダーシートから自動生成されました
+// ════════════════════════════════════════════════════════════
+// ════════════════════════════════════════════════════════════
+// ★★★ テンプレートデータ ★★★
+// ここを編集すると商品内容を変更できます
+// ※ このデータはExcelオーダーシートから自動生成されました
+// ════════════════════════════════════════════════════════════
+// ════════════════════════════════════════════════════════════
+// ★★★ テンプレートデータ ★★★
+// ここを編集すると商品内容を変更できます
+// ※ このデータはExcelオーダーシートから自動生成されました
+// ════════════════════════════════════════════════════════════
+// ════════════════════════════════════════════════════════════
+// ★★★ テンプレートデータ ★★★
+// 価格改定2026年4月版（新価格Excelより自動生成）
 // ════════════════════════════════════════════════════════════
 const SERIES_DATA = {
   unstress: {
@@ -884,33 +1052,89 @@ const SERIES_DATA = {
     basic: {
       label: "ベーシックプラン",
       items: [
-        { name: "アンストレス マッド クリンザー", qty: 2, unitPrice: 8800 },
-        { name: "アンストレス ハイドラリファイニング トナー", qty: 2, unitPrice: 9900 },
-        { name: "アンストレス カーミング セラム", qty: 1, unitPrice: 18700 },
-        { name: "アンストレス ハイドラリファイニング クリーム", qty: 1, unitPrice: 22000 },
-      ]
-    },
-    special: {
-      label: "スペシャルプラン",
-      items: [
-        { name: "アンストレス マッド クリンザー", qty: 2, unitPrice: 8800 },
-        { name: "アンストレス ハイドラリファイニング トナー", qty: 2, unitPrice: 9900 },
-        { name: "アンストレス カーミング セラム", qty: 2, unitPrice: 18700 },
-        { name: "アンストレス ハイドラリファイニング クリーム", qty: 2, unitPrice: 22000 },
-        { name: "アンストレス カーミング マスク", qty: 1, unitPrice: 14300 },
-        { name: "アンストレス アイ コントアクリーム", qty: 1, unitPrice: 16500 },
+        { name: "STEP１ ジェントルクレンジングミルク 300ml", qty: 1, unitPrice: 8800 },
+        { name: "STEP２ リバイタライジングトナー 300ml", qty: 1, unitPrice: 8800 },
+        { name: "STEP３ プロバイオティックピール 250ml", qty: 1, unitPrice: 25300 },
+        { name: "STEP４ フランジパニコンセントレート 300ml", qty: 1, unitPrice: 11000 },
+        { name: "STEP５ トータルセレニティセラム 100ml", qty: 1, unitPrice: 25300 },
+        { name: "STEP６A リラクシングマッサージクリーム 500ml", qty: 1, unitPrice: 11000 },
+        { name: "STEP６B マルチビタミンサプリメント 100ml", qty: 1, unitPrice: 15400 },
+        { name: "STEP７ クラリファイングマスク 250ml", qty: 1, unitPrice: 11000 },
+        { name: "STEP８ オプティマルハイドレーションマスク 250ml", qty: 1, unitPrice: 13200 },
+        { name: "STEP９ プロバイオティックモイスチャーライザー 150ml", qty: 1, unitPrice: 26400 },
+        { name: "コンフォートクレンジングムース 200ml", qty: 1, unitPrice: 4620, retailPrice: 7700 },
+        { name: "ジェントルクレンジングミルク 300ml", qty: 1, unitPrice: 4620, retailPrice: 7700 },
+        { name: "スタビライジングトナー 300ml", qty: 1, unitPrice: 4620, retailPrice: 7700 },
+        { name: "トータルセレニティセラム 30ml", qty: 1, unitPrice: 8580, retailPrice: 14300 },
+        { name: "プロバイオティックデイクリーム フォーアイアンドネック 30ml", qty: 1, unitPrice: 7260, retailPrice: 12100 },
+        { name: "プロバイオティックデイクリームSPF15 50ml", qty: 1, unitPrice: 8580, retailPrice: 14300 },
+        { name: "ハーモナイジングナイトクリーム フォーアイアンドネック 30ml", qty: 1, unitPrice: 7260, retailPrice: 12100 },
+        { name: "ハーモナイジングナイトクリーム 50ml", qty: 1, unitPrice: 8580, retailPrice: 14300 },
+        { name: "アブソルートリラクサー 30ml", qty: 1, unitPrice: 11880, retailPrice: 19800 },
+        { name: "クイックパフォーマンス 30ml", qty: 1, unitPrice: 8580, retailPrice: 14300 },
+        { name: "アイアンドネックコンセントレート 30ml", qty: 1, unitPrice: 8580, retailPrice: 14300 },
+        { name: "リフレッシングマスク 50ml", qty: 1, unitPrice: 6600, retailPrice: 11000 },
       ]
     },
     homecare: {
       label: "ホームケアプラン",
       suggestions: [
-        { name: "アンストレス マッド クリンザー 150ml", qty: 1, unitPrice: 5500 },
-        { name: "アンストレス ハイドラリファイニング トナー 300ml", qty: 1, unitPrice: 6600 },
-        { name: "アンストレス カーミング セラム 30ml", qty: 1, unitPrice: 11000 },
-        { name: "アンストレス ハイドラリファイニング クリーム 50ml", qty: 1, unitPrice: 13200 },
-        { name: "アンストレス カーミング マスク 75ml", qty: 1, unitPrice: 8800 },
+        { name: "コンフォートクレンジングムース 200ml", qty: 1, unitPrice: 4620, retailPrice: 7700 },
+        { name: "ジェントルクレンジングミルク 300ml", qty: 1, unitPrice: 4620, retailPrice: 7700 },
+        { name: "スタビライジングトナー 300ml", qty: 1, unitPrice: 4620, retailPrice: 7700 },
+        { name: "トータルセレニティセラム 30ml", qty: 1, unitPrice: 8580, retailPrice: 14300 },
+        { name: "プロバイオティックアイアンドネックデイクリームSPF12 30ml", qty: 1, unitPrice: 7260, retailPrice: 12100 },
+        { name: "プロバイオティックデイクリームSPF15 50ml", qty: 1, unitPrice: 8580, retailPrice: 14300 },
+        { name: "ハーモナイジングナイトクリーム フォーアイアンドネック 30ml", qty: 1, unitPrice: 7260, retailPrice: 12100 },
+        { name: "ハーモナイジングナイトクリーム 50ml", qty: 1, unitPrice: 8580, retailPrice: 14300 },
+        { name: "アブソルートリラクサー 30ml", qty: 1, unitPrice: 11880, retailPrice: 19800 },
+        { name: "クイックパフォーマンス 30ml", qty: 1, unitPrice: 8580, retailPrice: 14300 },
+        { name: "アイアンドネックコンセントレート 30ml", qty: 1, unitPrice: 8580, retailPrice: 14300 },
+        { name: "リフレッシングマスク 50ml", qty: 1, unitPrice: 6600, retailPrice: 11000 },
       ]
-    }
+    },
+    gyomu: {
+      label: "業務用プラン",
+      items: [
+        { name: "STEP１ ジェントルクレンジングミルク 300ml", qty: 1, unitPrice: 8800 },
+        { name: "STEP２ リバイタライジングトナー 300ml", qty: 1, unitPrice: 8800 },
+        { name: "STEP３ プロバイオティックピール 250ml", qty: 1, unitPrice: 25300 },
+        { name: "STEP４ フランジパニコンセントレート 300ml", qty: 1, unitPrice: 11000 },
+        { name: "STEP５ トータルセレニティセラム 100ml", qty: 1, unitPrice: 25300 },
+        { name: "STEP６A リラクシングマッサージクリーム 500ml", qty: 1, unitPrice: 11000 },
+        { name: "STEP６B マルチビタミンサプリメント 100ml", qty: 1, unitPrice: 15400 },
+        { name: "STEP７ クラリファイングマスク 250ml", qty: 1, unitPrice: 11000 },
+        { name: "STEP８ オプティマルハイドレーションマスク 250ml", qty: 1, unitPrice: 13200 },
+        { name: "STEP９ プロバイオティックモイスチャーライザー 150ml", qty: 1, unitPrice: 26400 },
+      ]
+    },
+    special: {
+      label: "スペシャルプラン",
+      items: [
+        { name: "STEP１ ジェントルクレンジングミルク 300ml", qty: 1, unitPrice: 8800 },
+        { name: "STEP２ リバイタライジングトナー 300ml", qty: 1, unitPrice: 8800 },
+        { name: "STEP３ プロバイオティックピール 250ml", qty: 1, unitPrice: 25300 },
+        { name: "STEP４ フランジパニコンセントレート 300ml", qty: 1, unitPrice: 11000 },
+        { name: "STEP５ トータルセレニティセラム 100ml", qty: 1, unitPrice: 25300 },
+        { name: "STEP６A リラクシングマッサージクリーム 500ml", qty: 1, unitPrice: 11000 },
+        { name: "STEP６B マルチビタミンサプリメント 100ml", qty: 1, unitPrice: 15400 },
+        { name: "STEP７ クラリファイングマスク 250ml", qty: 1, unitPrice: 11000 },
+        { name: "STEP８ オプティマルハイドレーションマスク 250ml", qty: 1, unitPrice: 13200 },
+        { name: "STEP９ プロバイオティックモイスチャーライザー 150ml", qty: 1, unitPrice: 26400 },
+        { name: "コンフォートクレンジングムース 200ml", qty: 2, unitPrice: 4620, retailPrice: 7700 },
+        { name: "ジェントルクレンジングミルク 300ml", qty: 2, unitPrice: 4620, retailPrice: 7700 },
+        { name: "スタビライジングトナー 300ml", qty: 2, unitPrice: 4620, retailPrice: 7700 },
+        { name: "トータルセレニティセラム 30ml", qty: 2, unitPrice: 8580, retailPrice: 14300 },
+        { name: "プロバイオティックデイクリーム フォーアイアンドネック 30ml", qty: 2, unitPrice: 7260, retailPrice: 12100 },
+        { name: "プロバイオティックデイクリームSPF15 50ml", qty: 2, unitPrice: 8580, retailPrice: 14300 },
+        { name: "ハーモナイジングナイトクリーム フォーアイアンドネック 30ml", qty: 2, unitPrice: 7260, retailPrice: 12100 },
+        { name: "ハーモナイジングナイトクリーム 50ml", qty: 2, unitPrice: 8580, retailPrice: 14300 },
+        { name: "アブソルートリラクサー 30ml", qty: 2, unitPrice: 11880, retailPrice: 19800 },
+        { name: "クイックパフォーマンス 30ml", qty: 2, unitPrice: 8580, retailPrice: 14300 },
+        { name: "アイアンドネックコンセントレート 30ml", qty: 2, unitPrice: 8580, retailPrice: 14300 },
+        { name: "リフレッシングマスク 50ml", qty: 2, unitPrice: 6600, retailPrice: 11000 },
+      ]
+    },
   },
   biophyto: {
     name: "ビオフィート",
@@ -918,33 +1142,336 @@ const SERIES_DATA = {
     basic: {
       label: "ベーシックプラン",
       items: [
-        { name: "ビオフィート ゼン クリンザー", qty: 2, unitPrice: 9200 },
-        { name: "ビオフィート ゼン トナー", qty: 2, unitPrice: 10100 },
-        { name: "ビオフィート ユース セラム", qty: 1, unitPrice: 21000 },
-        { name: "ビオフィート リジュベネーティング クリーム", qty: 1, unitPrice: 24000 },
-      ]
-    },
-    special: {
-      label: "スペシャルプラン",
-      items: [
-        { name: "ビオフィート ゼン クリンザー", qty: 2, unitPrice: 9200 },
-        { name: "ビオフィート ゼン トナー", qty: 2, unitPrice: 10100 },
-        { name: "ビオフィート ユース セラム", qty: 2, unitPrice: 21000 },
-        { name: "ビオフィート リジュベネーティング クリーム", qty: 2, unitPrice: 24000 },
-        { name: "ビオフィート フィトマスク", qty: 1, unitPrice: 15400 },
-        { name: "ビオフィート アイ コントア", qty: 1, unitPrice: 17600 },
+        { name: "STEP１ マイルドフェイシャルクレンザー 500ml", qty: 1, unitPrice: 7700 },
+        { name: "STEP２ リフレッシングトナー 500ml", qty: 1, unitPrice: 8800 },
+        { name: "STEP３ スプリングゲル 250ml", qty: 1, unitPrice: 7700 },
+        { name: "STEP４ ハーバルピール 250ml", qty: 1, unitPrice: 18700 },
+        { name: "STEP５ コンフォーティングマッサージクリーム 500ml", qty: 1, unitPrice: 8800 },
+        { name: "STEP６A セブアジャスターマスク 250ml", qty: 1, unitPrice: 7700 },
+        { name: "STEP６B ザターマスク 250ml", qty: 1, unitPrice: 9900 },
+        { name: "STEP６C アンチルージュマスク 250ml", qty: 1, unitPrice: 9900 },
+        { name: "STEP６D リバイタライジングマスク 250ml", qty: 1, unitPrice: 9900 },
+        { name: "STEP７ アリューリングセラム 100ml", qty: 1, unitPrice: 11000 },
+        { name: "STEP８A ザタークリーム 250ml", qty: 1, unitPrice: 9900 },
+        { name: "STEP８B ディフェンスティントクリームSPF20 250ml", qty: 1, unitPrice: 8800 },
+        { name: "STEP９ エンライトニング アイ＆ネッククリーム 75ml", qty: 1, unitPrice: 8800 },
+        { name: "マイルドフェイシャルクレンザー 250ml", qty: 1, unitPrice: 3960, retailPrice: 6600 },
+        { name: "リフレッシングトナー 300ml", qty: 1, unitPrice: 3960, retailPrice: 6600 },
+        { name: "アブソルートDセラム 30ml", qty: 1, unitPrice: 5940, retailPrice: 9900 },
+        { name: "アリューリングセラム 30ml", qty: 1, unitPrice: 5940, retailPrice: 9900 },
+        { name: "ディフェンスデイクリームSPF20 75ml", qty: 1, unitPrice: 5280, retailPrice: 8800 },
+        { name: "ノーマライズナイトクリーム 75ml", qty: 1, unitPrice: 5280, retailPrice: 8800 },
+        { name: "バランシングクリーム 75ml", qty: 1, unitPrice: 5280, retailPrice: 8800 },
+        { name: "ザタークリーム 75ml", qty: 1, unitPrice: 5280, retailPrice: 8800 },
+        { name: "エンライトニング アイ&ネッククリーム 30ml", qty: 1, unitPrice: 5280, retailPrice: 8800 },
+        { name: "ハーバルコンプレックス 75ml", qty: 1, unitPrice: 7260, retailPrice: 12100 },
+        { name: "セブアジャスターマスク 75ml", qty: 1, unitPrice: 5016, retailPrice: 8360 },
+        { name: "ザターマスク 75ml", qty: 1, unitPrice: 5280, retailPrice: 8800 },
+        { name: "アンチルージュマスク 75ml", qty: 1, unitPrice: 5016, retailPrice: 8360 },
+        { name: "リバイタライジングマスク 75ml", qty: 1, unitPrice: 5016, retailPrice: 8360 },
       ]
     },
     homecare: {
       label: "ホームケアプラン",
       suggestions: [
-        { name: "ビオフィート ゼン クリンザー 150ml", qty: 1, unitPrice: 5800 },
-        { name: "ビオフィート ゼン トナー 300ml", qty: 1, unitPrice: 6800 },
-        { name: "ビオフィート ユース セラム 30ml", qty: 1, unitPrice: 12500 },
-        { name: "ビオフィート リジュベネーティング クリーム 50ml", qty: 1, unitPrice: 14500 },
-        { name: "ビオフィート フィトマスク 75ml", qty: 1, unitPrice: 9200 },
+        { name: "マイルドフェイシャルクレンザー 250ml", qty: 1, unitPrice: 3960, retailPrice: 6600 },
+        { name: "リフレッシングトナー 300ml", qty: 1, unitPrice: 3960, retailPrice: 6600 },
+        { name: "アブソルートDセラム 30ml", qty: 1, unitPrice: 5940, retailPrice: 9900 },
+        { name: "アリューリングセラム 30ml", qty: 1, unitPrice: 5940, retailPrice: 9900 },
+        { name: "ディフェンスデイクリームSPF20 75ml", qty: 1, unitPrice: 5280, retailPrice: 8800 },
+        { name: "ノーマライズナイトクリーム 75ml", qty: 1, unitPrice: 5280, retailPrice: 8800 },
+        { name: "バランシングクリーム 75ml", qty: 1, unitPrice: 5280, retailPrice: 8800 },
+        { name: "ザタークリーム 75ml", qty: 1, unitPrice: 5280, retailPrice: 8800 },
+        { name: "エンライトニング アイ&ネッククリーム 30ml", qty: 1, unitPrice: 5280, retailPrice: 8800 },
+        { name: "ハーバルコンプレックス 75ml", qty: 1, unitPrice: 7260, retailPrice: 12100 },
+        { name: "セブアジャスターマスク 75ml", qty: 1, unitPrice: 5016, retailPrice: 8360 },
+        { name: "ザターマスク 75ml", qty: 1, unitPrice: 5280, retailPrice: 8800 },
+        { name: "アンチルージュマスク 75ml", qty: 1, unitPrice: 5016, retailPrice: 8360 },
+        { name: "リバイタライジングマスク 75ml", qty: 1, unitPrice: 5016, retailPrice: 8360 },
       ]
-    }
+    },
+    gyomu: {
+      label: "業務用プラン",
+      items: [
+        { name: "STEP１ マイルドフェイシャルクレンザー 500ml", qty: 1, unitPrice: 7700 },
+        { name: "STEP２ リフレッシングトナー 500ml", qty: 1, unitPrice: 8800 },
+        { name: "STEP３ スプリングゲル 250ml", qty: 1, unitPrice: 7700 },
+        { name: "STEP４ ハーバルピール 250ml", qty: 1, unitPrice: 18700 },
+        { name: "STEP５ コンフォーティングマッサージクリーム 500ml", qty: 1, unitPrice: 8800 },
+        { name: "STEP６A セブアジャスターマスク 250ml", qty: 1, unitPrice: 7700 },
+        { name: "STEP６B ザターマスク 250ml", qty: 1, unitPrice: 9900 },
+        { name: "STEP６C アンチルージュマスク 250ml", qty: 1, unitPrice: 9900 },
+        { name: "STEP６Dリバイタライジングマスク 250ml", qty: 1, unitPrice: 9900 },
+        { name: "STEP７ アリューリングセラム 100ml", qty: 1, unitPrice: 11000 },
+        { name: "STEP８A ザタークリーム 250ml", qty: 1, unitPrice: 9900 },
+        { name: "STEP８B ディフェンスティントクリームSPF20 250ml", qty: 1, unitPrice: 8800 },
+        { name: "STEP９ エンライトニング アイ＆ネッククリーム 75ml", qty: 1, unitPrice: 8800 },
+      ]
+    },
+    special: {
+      label: "スペシャルプラン",
+      items: [
+        { name: "STEP１ マイルドフェイシャルクレンザー 500ml", qty: 1, unitPrice: 7700 },
+        { name: "STEP２ リフレッシングトナー 500ml", qty: 1, unitPrice: 8800 },
+        { name: "STEP３ スプリングゲル 250ml", qty: 1, unitPrice: 7700 },
+        { name: "STEP４ ハーバルピール 250ml", qty: 1, unitPrice: 18700 },
+        { name: "STEP５ コンフォーティングマッサージクリーム 500ml", qty: 1, unitPrice: 8800 },
+        { name: "STEP６A セブアジャスターマスク 250ml", qty: 1, unitPrice: 7700 },
+        { name: "STEP６B ザターマスク 250ml", qty: 1, unitPrice: 9900 },
+        { name: "STEP６C アンチルージュマスク 250ml", qty: 1, unitPrice: 9900 },
+        { name: "STEP６Dリバイタライジングマスク 250ml", qty: 1, unitPrice: 9900 },
+        { name: "STEP７ アリューリングセラム 100ml", qty: 1, unitPrice: 11000 },
+        { name: "STEP８A ザタークリーム 250ml", qty: 1, unitPrice: 9900 },
+        { name: "STEP８B アルティメットディフェンスデイクリームSPF20 250ml", qty: 1, unitPrice: 8800 },
+        { name: "STEP９ エンライトニング アイ＆ネッククリーム 75ml", qty: 1, unitPrice: 8800 },
+        { name: "マイルドフェイシャルクレンザー 250ml", qty: 2, unitPrice: 3960, retailPrice: 6600 },
+        { name: "リフレッシングトナー 300ml", qty: 2, unitPrice: 3960, retailPrice: 6600 },
+        { name: "アブソルートDセラム 30ml", qty: 2, unitPrice: 5940, retailPrice: 9900 },
+        { name: "アリューリングセラム 30ml", qty: 2, unitPrice: 5940, retailPrice: 9900 },
+        { name: "ディフェンスデイクリームSPF20 75ml", qty: 2, unitPrice: 5280, retailPrice: 8800 },
+        { name: "ノーマライズナイトクリーム 75ml", qty: 2, unitPrice: 5280, retailPrice: 8800 },
+        { name: "バランシングクリーム 75ml", qty: 2, unitPrice: 5280, retailPrice: 8800 },
+        { name: "ザタークリーム 75ml", qty: 2, unitPrice: 5280, retailPrice: 8800 },
+        { name: "エンライトニング アイ&ネッククリーム 30ml", qty: 2, unitPrice: 5280, retailPrice: 8800 },
+        { name: "ハーバルコンプレックス 75ml", qty: 2, unitPrice: 7260, retailPrice: 12100 },
+        { name: "セブアジャスターマスク 75ml", qty: 2, unitPrice: 5016, retailPrice: 8360 },
+        { name: "ザターマスク 75ml", qty: 2, unitPrice: 5280, retailPrice: 8800 },
+        { name: "アンチルージュマスク 75ml", qty: 2, unitPrice: 5016, retailPrice: 8360 },
+        { name: "リバイタライジングマスク 75ml", qty: 2, unitPrice: 5016, retailPrice: 8360 },
+      ]
+    },
+  },
+  illustrious: {
+    name: "イラストリアス",
+    nameEn: "ILLUSTRIOUS",
+    basic: {
+      label: "ベーシックプラン",
+      items: [
+        { name: "STEP 1 ミセラーウォーター 300ml", qty: 1, unitPrice: 5500 },
+        { name: "STEP2A イラストリアスパウダー 4.5gX30", qty: 1, unitPrice: 14300 },
+        { name: "STEP2B ピールアクチベーター 300ml", qty: 1, unitPrice: 14300 },
+        { name: "STEP3 ハイドロフュージョン 1gX30", qty: 1, unitPrice: 18700 },
+        { name: "STEP4 イラストリアスマスク 250ml", qty: 1, unitPrice: 8800 },
+        { name: "STEP5 Aマスク 150ｇ", qty: 1, unitPrice: 12100 },
+        { name: "STEP6 イラストリアスセラム 50ml", qty: 1, unitPrice: 9900 },
+        { name: "STEP7 イラストリアスデイクリーム SPF50 100ml", qty: 1, unitPrice: 11000 },
+        { name: "イラストリアスクレンザー 300ml", qty: 1, unitPrice: 4950, retailPrice: 8250 },
+        { name: "ミセラーウォーター 300ml", qty: 1, unitPrice: 4950, retailPrice: 8250 },
+        { name: "イラストリアストナー 300ml", qty: 1, unitPrice: 4950, retailPrice: 8250 },
+        { name: "イラストリアスセラム 30ml", qty: 1, unitPrice: 6600, retailPrice: 11000 },
+        { name: "アブソリュートブライト 30ml", qty: 1, unitPrice: 9900, retailPrice: 16500 },
+        { name: "イラストリアスデイクリーム SPF50 50ml", qty: 1, unitPrice: 7260, retailPrice: 12100 },
+        { name: "イラストリアスナイトクリーム 50ml", qty: 1, unitPrice: 7260, retailPrice: 12100 },
+        { name: "イラストリアスアイクリーム 15ml", qty: 1, unitPrice: 5280, retailPrice: 8800 },
+        { name: "イラストリアスナイトアイクリーム 15ml", qty: 1, unitPrice: 5280, retailPrice: 8800 },
+        { name: "イラストリアスマスク 75ml", qty: 1, unitPrice: 5940, retailPrice: 9900 },
+        { name: "イラストリアスピーリング 50ml", qty: 1, unitPrice: 6600, retailPrice: 11000 },
+        { name: "イラストリアスハンドクリーム 75ml", qty: 1, unitPrice: 3630, retailPrice: 6050 },
+      ]
+    },
+    homecare: {
+      label: "ホームケアプラン",
+      suggestions: [
+        { name: "イラストリアスクレンザー 300ml", qty: 1, unitPrice: 4950, retailPrice: 8250 },
+        { name: "ミセラーウォーター 300ml", qty: 1, unitPrice: 4950, retailPrice: 8250 },
+        { name: "イラストリアストナー 300ml", qty: 1, unitPrice: 4950, retailPrice: 8250 },
+        { name: "イラストリアスセラム 30ml", qty: 1, unitPrice: 6600, retailPrice: 11000 },
+        { name: "アブソリュートブライト 30ml", qty: 1, unitPrice: 9900, retailPrice: 16500 },
+        { name: "イラストリアスデイクリーム SPF50 50ml", qty: 1, unitPrice: 7260, retailPrice: 12100 },
+        { name: "イラストリアスナイトクリーム 50ml", qty: 1, unitPrice: 7260, retailPrice: 12100 },
+        { name: "イラストリアスアイクリーム 15ml", qty: 1, unitPrice: 5280, retailPrice: 8800 },
+        { name: "イラストリアスナイトアイクリーム 15ml", qty: 1, unitPrice: 5280, retailPrice: 8800 },
+        { name: "イラストリアスマスク 75ml", qty: 1, unitPrice: 5940, retailPrice: 9900 },
+        { name: "イラストリアスピーリング 50ml", qty: 1, unitPrice: 6600, retailPrice: 11000 },
+        { name: "イラストリアスハンドクリーム 75ml", qty: 1, unitPrice: 3630, retailPrice: 6050 },
+      ]
+    },
+    gyomu: {
+      label: "業務用プラン",
+      items: [
+        { name: "STEP 1 ミセラーウォーター 300ml", qty: 1, unitPrice: 5500 },
+        { name: "STEP2A イラストリアスパウダー 4.5gX30", qty: 1, unitPrice: 14300 },
+        { name: "STEP2B ピールアクチベーター 300ml", qty: 1, unitPrice: 14300 },
+        { name: "STEP3 ハイドロフュージョン 1gX30", qty: 1, unitPrice: 18700 },
+        { name: "STEP4 イラストリアスマスク 250ml", qty: 1, unitPrice: 8800 },
+        { name: "STEP5 Aマスク 150ｇ", qty: 1, unitPrice: 12100 },
+        { name: "STEP6 イラストリアスセラム 50ml", qty: 1, unitPrice: 9900 },
+        { name: "STEP7 イラストリアスデイクリーム SPF50 100ml", qty: 1, unitPrice: 11000 },
+      ]
+    },
+    special: {
+      label: "スペシャルプラン",
+      items: [
+        { name: "STEP 1 ミセラーウォーター 300ml", qty: 1, unitPrice: 5500 },
+        { name: "STEP2A イラストリアスパウダー 4.5gX30", qty: 1, unitPrice: 14300 },
+        { name: "STEP2B ピールアクチベーター 300ml", qty: 1, unitPrice: 14300 },
+        { name: "STEP3 ハイドロフュージョン 1gX30", qty: 1, unitPrice: 18700 },
+        { name: "STEP4 イラストリアスマスク 250ml", qty: 1, unitPrice: 8800 },
+        { name: "STEP5 Aマスク 150ｇ", qty: 1, unitPrice: 12100 },
+        { name: "STEP6 イラストリアスセラム 50ml", qty: 1, unitPrice: 9900 },
+        { name: "STEP7 イラストリアスデイクリーム SPF50 100ml", qty: 1, unitPrice: 11000 },
+        { name: "イラストリアスクレンザー 300ml", qty: 2, unitPrice: 4950, retailPrice: 8250 },
+        { name: "ミセラーウォーター 300ml", qty: 2, unitPrice: 4950, retailPrice: 8250 },
+        { name: "イラストリアストナー 300ml", qty: 2, unitPrice: 4950, retailPrice: 8250 },
+        { name: "イラストリアスセラム 30ml", qty: 2, unitPrice: 6600, retailPrice: 11000 },
+        { name: "アブソリュートブライト 30ml", qty: 2, unitPrice: 9900, retailPrice: 16500 },
+        { name: "イラストリアスデイクリーム SPF50 50ml", qty: 2, unitPrice: 7260, retailPrice: 12100 },
+        { name: "イラストリアスナイトクリーム 50ml", qty: 2, unitPrice: 7260, retailPrice: 12100 },
+        { name: "イラストリアスアイクリーム 15ml", qty: 2, unitPrice: 5280, retailPrice: 8800 },
+        { name: "イラストリアスナイトアイクリーム 15ml", qty: 2, unitPrice: 5280, retailPrice: 8800 },
+        { name: "イラストリアスマスク 75ml", qty: 2, unitPrice: 5940, retailPrice: 9900 },
+        { name: "イラストリアスピーリング 50ml", qty: 2, unitPrice: 6600, retailPrice: 11000 },
+        { name: "イラストリアスハンドクリーム 75ml", qty: 2, unitPrice: 3630, retailPrice: 6050 },
+      ]
+    },
+  },
+  rosedemer: {
+    name: "ローズドメーラ",
+    nameEn: "ROSE DE MER",
+    basic: {
+      label: "ベーシックプラン",
+      items: [
+        { name: "STEP 1 サボンスプリーム 150ml", qty: 1, unitPrice: 9350 },
+        { name: "シーハーバルディープピールキット 2A シーハーバルディープピール 4.5ｇ×20 2B ハーバルピールアクチベーター 150ｍｌ×2 -", qty: 1, unitPrice: 110000 },
+        { name: "STEP 3 スーティングマスク 250g", qty: 1, unitPrice: 11770 },
+        { name: "STEP 4 ポストピーリングプロクティブゲル 150ml", qty: 1, unitPrice: 10010 },
+        { name: "STEP 5 ポストピーリングカバークリーム 店販用/業務用 20g", qty: 2, unitPrice: 6600, retailPrice: 11000 },
+        { name: "ピーリングソープ 30g", qty: 1, unitPrice: 3300, retailPrice: 5500 },
+        { name: "ポストピールキット -", qty: 1, unitPrice: 5148, retailPrice: 8580 },
+        { name: "クレンザー 75ｍｌ", qty: 1, unitPrice: 2640, retailPrice: 4400 },
+      ]
+    },
+    homecare: {
+      label: "ホームケアプラン",
+      suggestions: [
+        { name: "ポストピーリングカバークリーム 20g", qty: 1, unitPrice: 6600, retailPrice: 11000 },
+        { name: "ピーリングソープ 30g", qty: 1, unitPrice: 3300, retailPrice: 5500 },
+        { name: "ポストピールキット -", qty: 1, unitPrice: 5148, retailPrice: 8580 },
+        { name: "クレンザー 75ｍｌ", qty: 1, unitPrice: 2640, retailPrice: 4400 },
+      ]
+    },
+    gyomu: {
+      label: "業務用プラン",
+      items: [
+        { name: "STEP 1 サボンスプリーム 150ml", qty: 1, unitPrice: 9350 },
+        { name: "シーハーバルディープピールキット 2A シーハーバルディープピール 4.5ｇ×20 2B ハーバルピールアクチベーター 150ｍｌ×2 -", qty: 1, unitPrice: 110000 },
+        { name: "STEP 3 スーティングマスク 250g", qty: 1, unitPrice: 11770 },
+        { name: "STEP 4 ポストピーリングプロクティブゲル 150ml", qty: 1, unitPrice: 10010 },
+        { name: "STEP 5 ポストピーリングカバークリーム 店販用/業務用 20g", qty: 1, unitPrice: 6600, retailPrice: 11000 },
+      ]
+    },
+    special: {
+      label: "スペシャルプラン",
+      items: [
+        { name: "STEP 1 サボンスプリーム 150ml", qty: 1, unitPrice: 9350 },
+        { name: "シーハーバルディープピールキット 2A シーハーバルディープピール 4.5ｇ×20 2B ハーバルピールアクチベーター 150ｍｌ×2 -", qty: 1, unitPrice: 110000 },
+        { name: "STEP 3 スーティングマスク 250g", qty: 1, unitPrice: 11770 },
+        { name: "STEP 4 ポストピーリングプロクティブゲル 150ml", qty: 1, unitPrice: 10010 },
+        { name: "STEP 5 ポストピーリングカバークリーム 店販用/業務用 20g", qty: 3, unitPrice: 6600, retailPrice: 11000 },
+        { name: "ピーリングソープ 30g", qty: 2, unitPrice: 3300, retailPrice: 5500 },
+        { name: "ポストピールキット -", qty: 2, unitPrice: 5148, retailPrice: 8580 },
+        { name: "クレンザー 75ｍｌ", qty: 2, unitPrice: 2640, retailPrice: 4400 },
+      ]
+    },
+  },
+  foreveryoung: {
+    name: "フォーエバーヤング",
+    nameEn: "FOREVER YOUNG",
+    basic: {
+      label: "ベーシックプラン",
+      items: [
+        { name: "STEP１ プリフィング ゲル 300ml", qty: 1, unitPrice: 8800 },
+        { name: "STEP２ インフラ-ピール ローション 300ml", qty: 1, unitPrice: 11000 },
+        { name: "STEP３ レッド ワイン ピール 150ml", qty: 1, unitPrice: 18700 },
+        { name: "STEP４ リジェネレイティング アンダー -マスク 250ml", qty: 1, unitPrice: 8800 },
+        { name: "STEP5A ビオ ファーミング セラム 300ml", qty: 1, unitPrice: 18700 },
+        { name: "STEP5B リフティング パウダー 150ml", qty: 1, unitPrice: 15400 },
+        { name: "STEP 6 レイディアンス モイスチャライジング マスク 250ml", qty: 1, unitPrice: 13200 },
+        { name: "STEP 6B アクティブ ファーミング アルゲ マスク 500ml", qty: 1, unitPrice: 14300 },
+        { name: "STEP6B アンチ-パフ アイ マスク 500ml", qty: 1, unitPrice: 13200 },
+        { name: "STEP 7 トータル リニューアル セラム 100ml", qty: 1, unitPrice: 15400 },
+        { name: "STEP8 ハイドラ プロテクティブ デイ クリーム 150ml", qty: 1, unitPrice: 17600 },
+        { name: "ジェントル クレンジング ミルク 300ml", qty: 1, unitPrice: 4620, retailPrice: 7700 },
+        { name: "バランシング トナー 300ml", qty: 1, unitPrice: 4620, retailPrice: 7700 },
+        { name: "モイスチャー フュージョン セラム 30ml", qty: 1, unitPrice: 10560, retailPrice: 17600 },
+        { name: "トータル リニューアル セラム 30ml", qty: 1, unitPrice: 7920, retailPrice: 13200 },
+        { name: "アブソリュートコントゥアセラム 30ml", qty: 1, unitPrice: 8580, retailPrice: 14300 },
+        { name: "アブソリュート フィックス 30ml", qty: 1, unitPrice: 14520, retailPrice: 24200 },
+        { name: "ハイドラ プロテクティブ デイ クリームSPF25 50ml", qty: 1, unitPrice: 10164, retailPrice: 16940 },
+        { name: "リペアリング ナイト クリーム 50ml", qty: 1, unitPrice: 9900, retailPrice: 16500 },
+        { name: "チン＆ネックリモデリングクリーム 50ml", qty: 1, unitPrice: 8580, retailPrice: 14300 },
+        { name: "モイスチャー フュージョン クリーム 50ml", qty: 1, unitPrice: 9240, retailPrice: 15400 },
+        { name: "アイ ゾーン トリートメント 30ml", qty: 1, unitPrice: 4158, retailPrice: 6930 },
+        { name: "レイディアンス モイスチャライジング マスク 50ml", qty: 1, unitPrice: 5940, retailPrice: 9900 },
+        { name: "3ロニックセラム 30ml", qty: 1, unitPrice: 8580, retailPrice: 14300 },
+        { name: "アブソリュート コントゥアーキット(3点キット)", qty: 1, unitPrice: 21780, retailPrice: 36300 },
+      ]
+    },
+    homecare: {
+      label: "ホームケアプラン",
+      suggestions: [
+        { name: "ジェントル クレンジング ミルク 300ml", qty: 1, unitPrice: 4620, retailPrice: 7700 },
+        { name: "バランシング トナー 300ml", qty: 1, unitPrice: 4620, retailPrice: 7700 },
+        { name: "モイスチャー フュージョン セラム 30ml", qty: 1, unitPrice: 10560, retailPrice: 17600 },
+        { name: "トータル リニューアル セラム 30ml", qty: 1, unitPrice: 7920, retailPrice: 13200 },
+        { name: "アブソリュートコントゥアセラム 30ml", qty: 1, unitPrice: 8580, retailPrice: 14300 },
+        { name: "アブソリュート フィックス 30ml", qty: 1, unitPrice: 14520, retailPrice: 24200 },
+        { name: "ハイドラ プロテクティブ デイ クリームSPF25 50ml", qty: 1, unitPrice: 10164, retailPrice: 16940 },
+        { name: "リペアリング ナイト クリーム 50ml", qty: 1, unitPrice: 9900, retailPrice: 16500 },
+        { name: "チン＆ネックリモデリングクリーム 50ml", qty: 1, unitPrice: 8580, retailPrice: 14300 },
+        { name: "モイスチャー フュージョン クリーム 50ml", qty: 1, unitPrice: 9240, retailPrice: 15400 },
+        { name: "アイ ゾーン トリートメント 30ml", qty: 1, unitPrice: 4158, retailPrice: 6930 },
+        { name: "レイディアンス モイスチャライジング マスク 50ml", qty: 1, unitPrice: 5940, retailPrice: 9900 },
+        { name: "3ロニックセラム 30ml", qty: 1, unitPrice: 8580, retailPrice: 14300 },
+        { name: "アブソリュート コントゥアーキット(3点キット)", qty: 1, unitPrice: 21780, retailPrice: 36300 },
+      ]
+    },
+    gyomu: {
+      label: "業務用プラン",
+      items: [
+        { name: "STEP１ プリフィング ゲル 300ml", qty: 1, unitPrice: 8800 },
+        { name: "STEP２ インフラ-ピール ローション 300ml", qty: 1, unitPrice: 11000 },
+        { name: "STEP３ レッド ワイン ピール 150ml", qty: 1, unitPrice: 18700 },
+        { name: "STEP４ リジェネレイティング アンダー -マスク 250ml", qty: 1, unitPrice: 8800 },
+        { name: "STEP5A ビオ ファーミング セラム 300ml", qty: 1, unitPrice: 18700 },
+        { name: "STEP5B リフティング パウダー 150ml", qty: 1, unitPrice: 15400 },
+        { name: "STEP 6 レイディアンス モイスチャライジング マスク 250ml", qty: 1, unitPrice: 13200 },
+        { name: "STEP 6B アクティブ ファーミング アルゲ マスク 500ml", qty: 1, unitPrice: 14300 },
+        { name: "STEP6B アンチ-パフ アイ マスク 500ml", qty: 1, unitPrice: 13200 },
+        { name: "STEP 7 トータル リニューアル セラム 100ml", qty: 1, unitPrice: 15400 },
+        { name: "STEP8 ハイドラ プロテクティブ デイ クリーム 150ml", qty: 1, unitPrice: 17600 },
+      ]
+    },
+    special: {
+      label: "スペシャルプラン",
+      items: [
+        { name: "STEP１ プリフィング ゲル 300ml", qty: 1, unitPrice: 8800 },
+        { name: "STEP２ インフラ-ピール ローション 300ml", qty: 1, unitPrice: 11000 },
+        { name: "STEP３ レッド ワイン ピール 150ml", qty: 1, unitPrice: 18700 },
+        { name: "STEP４ リジェネレイティング アンダー -マスク 250ml", qty: 1, unitPrice: 8800 },
+        { name: "STEP5A ビオ ファーミング セラム 300ml", qty: 1, unitPrice: 18700 },
+        { name: "STEP5B リフティング パウダー 150ml", qty: 1, unitPrice: 15400 },
+        { name: "STEP 6 レイディアンス モイスチャライジング マスク 250ml", qty: 1, unitPrice: 13200 },
+        { name: "STEP 6B アクティブ ファーミング アルゲ マスク 500ml", qty: 1, unitPrice: 14300 },
+        { name: "STEP6B アンチ-パフ アイ マスク 500ml", qty: 1, unitPrice: 13200 },
+        { name: "STEP 7 トータル リニューアル セラム 100ml", qty: 1, unitPrice: 15400 },
+        { name: "STEP8 ハイドラ プロテクティブ デイ クリーム 150ml", qty: 1, unitPrice: 17600 },
+        { name: "ジェントル クレンジング ミルク 300ml", qty: 2, unitPrice: 4620, retailPrice: 7700 },
+        { name: "バランシング トナー 300ml", qty: 2, unitPrice: 4620, retailPrice: 7700 },
+        { name: "モイスチャー フュージョン セラム 30ml", qty: 2, unitPrice: 10560, retailPrice: 17600 },
+        { name: "トータル リニューアル セラム 30ml", qty: 2, unitPrice: 7920, retailPrice: 13200 },
+        { name: "アブソリュートコントゥアセラム 30ml", qty: 2, unitPrice: 8580, retailPrice: 14300 },
+        { name: "アブソリュート フィックス 30ml", qty: 2, unitPrice: 14520, retailPrice: 24200 },
+        { name: "ハイドラ プロテクティブ デイ クリームSPF25 50ml", qty: 2, unitPrice: 10164, retailPrice: 16940 },
+        { name: "リペアリング ナイト クリーム 50ml", qty: 2, unitPrice: 9900, retailPrice: 16500 },
+        { name: "チン＆ネックリモデリングクリーム 50ml", qty: 2, unitPrice: 8580, retailPrice: 14300 },
+        { name: "モイスチャー フュージョン クリーム 50ml", qty: 2, unitPrice: 9240, retailPrice: 15400 },
+        { name: "アイ ゾーン トリートメント 30ml", qty: 2, unitPrice: 4158, retailPrice: 6930 },
+        { name: "レイディアンス モイスチャライジング マスク 50ml", qty: 2, unitPrice: 5940, retailPrice: 9900 },
+        { name: "3ロニックセラム 30ml", qty: 2, unitPrice: 8580, retailPrice: 14300 },
+        { name: "アブソリュート コントゥアーキット(3点キット)", qty: 2, unitPrice: 21780, retailPrice: 36300 },
+      ]
+    },
   },
   muse: {
     name: "ミューズ",
@@ -952,32 +1479,156 @@ const SERIES_DATA = {
     basic: {
       label: "ベーシックプラン",
       items: [
-        { name: "ミューズ ミセラー クリンザー", qty: 2, unitPrice: 8500 },
-        { name: "ミューズ ブライトニング トナー", qty: 2, unitPrice: 9500 },
-        { name: "ミューズ ビタミン C セラム", qty: 1, unitPrice: 22000 },
-        { name: "ミューズ ホワイトニング クリーム", qty: 1, unitPrice: 25000 },
-      ]
-    },
-    special: {
-      label: "スペシャルプラン",
-      items: [
-        { name: "ミューズ ミセラー クリンザー", qty: 2, unitPrice: 8500 },
-        { name: "ミューズ ブライトニング トナー", qty: 2, unitPrice: 9500 },
-        { name: "ミューズ ビタミン C セラム", qty: 2, unitPrice: 22000 },
-        { name: "ミューズ ホワイトニング クリーム", qty: 2, unitPrice: 25000 },
-        { name: "ミューズ ブライトニング マスク", qty: 1, unitPrice: 16500 },
-        { name: "ミューズ アイ ブライトナー", qty: 1, unitPrice: 18700 },
+        { name: "STEP 1 ミルキークレンザー 300ml", qty: 1, unitPrice: 8800 },
+        { name: "STEP２A ライトローズピール 150ml", qty: 1, unitPrice: 17600 },
+        { name: "STEP３ イルミネイティングゴマージュ 250ml", qty: 1, unitPrice: 11000 },
+        { name: "STEP４ エクストラクトスプラッシュ 業務用/店販用 150ml", qty: 2, unitPrice: 5610, retailPrice: 9350 },
+        { name: "STEP５ インダルジングマッサージオイル 150ml", qty: 1, unitPrice: 9900 },
+        { name: "STEP６ ビューティマスク 250ml", qty: 1, unitPrice: 9900 },
+        { name: "STEP７ セラムスプリーム 100ml", qty: 1, unitPrice: 20900 },
+        { name: "STEP８ シールディングデイクリーム 150ml", qty: 1, unitPrice: 20900 },
+        { name: "ミルキークレンザー 300ml", qty: 1, unitPrice: 3960, retailPrice: 6600 },
+        { name: "セラムスプリーム 30ml", qty: 1, unitPrice: 7590, retailPrice: 12650 },
+        { name: "アブソリュートディフェンス 30ml", qty: 1, unitPrice: 7920, retailPrice: 13200 },
+        { name: "プロテクティブデイクリーム 50ml", qty: 1, unitPrice: 9240, retailPrice: 15400 },
+        { name: "リバイタライジングナイトクリーム 50ml", qty: 1, unitPrice: 8580, retailPrice: 14300 },
+        { name: "ナリシングクリーム 50ml", qty: 1, unitPrice: 7920, retailPrice: 13200 },
+        { name: "レストアリングアイクリーム 30ml", qty: 1, unitPrice: 7920, retailPrice: 13200 },
+        { name: "イルミネイティングゴマージュ 75ml", qty: 1, unitPrice: 3300, retailPrice: 5500 },
+        { name: "ビューティマスク 75ml", qty: 1, unitPrice: 4620, retailPrice: 7700 },
+        { name: "エンチャンティングボディクリーム 300ml", qty: 1, unitPrice: 2970, retailPrice: 4950 },
       ]
     },
     homecare: {
       label: "ホームケアプラン",
       suggestions: [
-        { name: "ミューズ ミセラー クリンザー 150ml", qty: 1, unitPrice: 5200 },
-        { name: "ミューズ ブライトニング トナー 300ml", qty: 1, unitPrice: 6300 },
-        { name: "ミューズ ビタミン C セラム 30ml", qty: 1, unitPrice: 13500 },
-        { name: "ミューズ ホワイトニング クリーム 50ml", qty: 1, unitPrice: 15500 },
+        { name: "ミルキークレンザー 300ml", qty: 1, unitPrice: 3960, retailPrice: 6600 },
+        { name: "エクストラクトスプラッシュ 150ml", qty: 1, unitPrice: 5610, retailPrice: 9350 },
+        { name: "セラムスプリーム 30ml", qty: 1, unitPrice: 7590, retailPrice: 12650 },
+        { name: "アブソリュートディフェンス 30ml", qty: 1, unitPrice: 7920, retailPrice: 13200 },
+        { name: "プロテクティブデイクリーム 50ml", qty: 1, unitPrice: 9240, retailPrice: 15400 },
+        { name: "リバイタライジングナイトクリーム 50ml", qty: 1, unitPrice: 8580, retailPrice: 14300 },
+        { name: "ナリシングクリーム 50ml", qty: 1, unitPrice: 7920, retailPrice: 13200 },
+        { name: "レストアリングアイクリーム 30ml", qty: 1, unitPrice: 7920, retailPrice: 13200 },
+        { name: "イルミネイティングゴマージュ 75ml", qty: 1, unitPrice: 3300, retailPrice: 5500 },
+        { name: "ビューティマスク 75ml", qty: 1, unitPrice: 4620, retailPrice: 7700 },
+        { name: "エンチャンティングボディクリーム 300ml", qty: 1, unitPrice: 2970, retailPrice: 4950 },
       ]
-    }
+    },
+    gyomu: {
+      label: "業務用プラン",
+      items: [
+        { name: "STEP 1 ミルキークレンザー 300ml", qty: 1, unitPrice: 8800 },
+        { name: "STEP２A ライトローズピール 150ml", qty: 1, unitPrice: 17600 },
+        { name: "STEP３ イルミネイティングゴマージュ 250ml", qty: 1, unitPrice: 11000 },
+        { name: "STEP４ エクストラクトスプラッシュ 業務用/店販用 150ml", qty: 1, unitPrice: 5610, retailPrice: 9350 },
+        { name: "STEP５ インダルジングマッサージオイル 150ml", qty: 1, unitPrice: 9900 },
+        { name: "STEP６ ビューティマスク 250ml", qty: 1, unitPrice: 9900 },
+        { name: "STEP７ セラムスプリーム 100ml", qty: 1, unitPrice: 20900 },
+        { name: "STEP８ シールディングデイクリーム 150ml", qty: 1, unitPrice: 20900 },
+      ]
+    },
+    special: {
+      label: "スペシャルプラン",
+      items: [
+        { name: "STEP 1 ミルキークレンザー 300ml", qty: 1, unitPrice: 8800 },
+        { name: "STEP２A ライトローズピール 150ml", qty: 1, unitPrice: 17600 },
+        { name: "STEP３ イルミネイティングゴマージュ 250ml", qty: 1, unitPrice: 11000 },
+        { name: "STEP４ エクストラクトスプラッシュ 業務用/店販用 150ml", qty: 3, unitPrice: 5610, retailPrice: 9350 },
+        { name: "STEP５ インダルジングマッサージオイル 150ml", qty: 1, unitPrice: 9900 },
+        { name: "STEP６ ビューティマスク 250ml", qty: 1, unitPrice: 9900 },
+        { name: "STEP７ セラムスプリーム 100ml", qty: 1, unitPrice: 20900 },
+        { name: "STEP８ シールディングデイクリーム 150ml", qty: 1, unitPrice: 20900 },
+        { name: "ミルキークレンザー 300ml", qty: 2, unitPrice: 3960, retailPrice: 6600 },
+        { name: "セラムスプリーム 30ml", qty: 2, unitPrice: 7590, retailPrice: 12650 },
+        { name: "アブソリュートディフェンス 30ml", qty: 2, unitPrice: 7920, retailPrice: 13200 },
+        { name: "プロテクティブデイクリーム 50ml", qty: 2, unitPrice: 9240, retailPrice: 15400 },
+        { name: "リバイタライジングナイトクリーム 50ml", qty: 2, unitPrice: 8580, retailPrice: 14300 },
+        { name: "ナリシングクリーム 50ml", qty: 2, unitPrice: 7920, retailPrice: 13200 },
+        { name: "レストアリングアイクリーム 30ml", qty: 2, unitPrice: 7920, retailPrice: 13200 },
+        { name: "イルミネイティングゴマージュ 75ml", qty: 2, unitPrice: 3300, retailPrice: 5500 },
+        { name: "ビューティマスク 75ml", qty: 2, unitPrice: 4620, retailPrice: 7700 },
+        { name: "エンチャンティングボディクリーム 300ml", qty: 2, unitPrice: 2970, retailPrice: 4950 },
+      ]
+    },
+  },
+  newmuse: {
+    name: "【新】ミューズ",
+    nameEn: "NEW MUSE",
+    basic: {
+      label: "ベーシックプラン",
+      items: [
+        { name: "STEP1 ミルキークレンザー 300ml", qty: 1, unitPrice: 8800 },
+        { name: "STEP2A ローズライトピール 150ml", qty: 1, unitPrice: 11000 },
+        { name: "STEP3 ローズトニック 150ml", qty: 1, unitPrice: 8800 },
+        { name: "STEP4 マルチリジェネレーティングブースター 100ml", qty: 1, unitPrice: 11000 },
+        { name: "STEP5 レッドマスク 250ml", qty: 1, unitPrice: 11000 },
+        { name: "STEP6A バイオマトリックスファイバー 20pieces", qty: 1, unitPrice: 19800 },
+        { name: "STEP6B バイオマトリックスセラム 150ml", qty: 1, unitPrice: 8800 },
+        { name: "STEP7 トータルレジリエンスクリーム 100ml", qty: 1, unitPrice: 14300 },
+        { name: "STEP８ シールディングデイクリーム SPF30 100ml", qty: 1, unitPrice: 12100 },
+        { name: "ミルキークレンザー 300ml", qty: 1, unitPrice: 3960, retailPrice: 6600 },
+        { name: "レッドマスク 75ml", qty: 1, unitPrice: 4620, retailPrice: 7700 },
+        { name: "シールディングデイクリーム SPF30 75ml", qty: 1, unitPrice: 7260, retailPrice: 12100 },
+        { name: "リバイタライジングナイトクリーム 50ml", qty: 1, unitPrice: 8580, retailPrice: 14300 },
+        { name: "レストアリングアイクリーム 30ml", qty: 1, unitPrice: 6600, retailPrice: 11000 },
+        { name: "アブソリュートロンジェビティ 30ml", qty: 1, unitPrice: 7920, retailPrice: 13200 },
+        { name: "トータルレジリエンスクリーム 50ml", qty: 1, unitPrice: 7920, retailPrice: 13200 },
+        { name: "バイオタイトセラム 30ml", qty: 1, unitPrice: 7260, retailPrice: 12100 },
+        { name: "エンチャンティングボディクリーム 300ml", qty: 1, unitPrice: 2970, retailPrice: 4950 },
+      ]
+    },
+    homecare: {
+      label: "ホームケアプラン",
+      suggestions: [
+        { name: "ミルキークレンザー 300ml", qty: 1, unitPrice: 3960, retailPrice: 6600 },
+        { name: "レッドマスク 75ml", qty: 1, unitPrice: 4620, retailPrice: 7700 },
+        { name: "シールディングデイクリーム SPF30 75ml", qty: 1, unitPrice: 7260, retailPrice: 12100 },
+        { name: "リバイタライジングナイトクリーム 50ml", qty: 1, unitPrice: 8580, retailPrice: 14300 },
+        { name: "レストアリングアイクリーム 30ml", qty: 1, unitPrice: 6600, retailPrice: 11000 },
+        { name: "アブソリュートロンジェビティ 30ml", qty: 1, unitPrice: 7920, retailPrice: 13200 },
+        { name: "トータルレジリエンスクリーム 50ml", qty: 1, unitPrice: 7920, retailPrice: 13200 },
+        { name: "バイオタイトセラム 30ml", qty: 1, unitPrice: 7260, retailPrice: 12100 },
+        { name: "エンチャンティングボディクリーム 300ml", qty: 1, unitPrice: 2970, retailPrice: 4950 },
+      ]
+    },
+    gyomu: {
+      label: "業務用プラン",
+      items: [
+        { name: "STEP1 ミルキークレンザー 300ml", qty: 1, unitPrice: 8800 },
+        { name: "STEP2A ローズライトピール 150ml", qty: 1, unitPrice: 11000 },
+        { name: "STEP3 ローズトニック 150ml", qty: 1, unitPrice: 8800 },
+        { name: "STEP4 マルチリジェネレーティングブースター 100ml", qty: 1, unitPrice: 11000 },
+        { name: "STEP5 レッドマスク 250ml", qty: 1, unitPrice: 11000 },
+        { name: "STEP6A バイオマトリックスファイバー 20pieces", qty: 1, unitPrice: 19800 },
+        { name: "STEP6B バイオマトリックスセラム 150ml", qty: 1, unitPrice: 8800 },
+        { name: "STEP7 トータルレジリエンスクリーム 100ml", qty: 1, unitPrice: 14300 },
+        { name: "STEP８ シールディングデイクリーム SPF30 100ml", qty: 1, unitPrice: 12100 },
+      ]
+    },
+    special: {
+      label: "スペシャルプラン",
+      items: [
+        { name: "STEP1 ミルキークレンザー 300ml", qty: 1, unitPrice: 8800 },
+        { name: "STEP2A ローズライトピール 150ml", qty: 1, unitPrice: 11000 },
+        { name: "STEP3 ローズトニック 150ml", qty: 1, unitPrice: 8800 },
+        { name: "STEP4 マルチリジェネレーティングブースター 100ml", qty: 1, unitPrice: 11000 },
+        { name: "STEP5 レッドマスク 250ml", qty: 1, unitPrice: 11000 },
+        { name: "STEP6A バイオマトリックスファイバー 20pieces", qty: 1, unitPrice: 19800 },
+        { name: "STEP6B バイオマトリックスセラム 150ml", qty: 1, unitPrice: 8800 },
+        { name: "STEP7 トータルレジリエンスクリーム 100ml", qty: 1, unitPrice: 14300 },
+        { name: "STEP８ シールディングデイクリーム SPF30 100ml", qty: 1, unitPrice: 12100 },
+        { name: "ミルキークレンザー 300ml", qty: 2, unitPrice: 3960, retailPrice: 6600 },
+        { name: "レッドマスク 75ml", qty: 2, unitPrice: 4620, retailPrice: 7700 },
+        { name: "シールディングデイクリーム SPF30 75ml", qty: 2, unitPrice: 7260, retailPrice: 12100 },
+        { name: "リバイタライジングナイトクリーム 50ml", qty: 2, unitPrice: 8580, retailPrice: 14300 },
+        { name: "レストアリングアイクリーム 30ml", qty: 2, unitPrice: 6600, retailPrice: 11000 },
+        { name: "アブソリュートロンジェビティ 30ml", qty: 2, unitPrice: 7920, retailPrice: 13200 },
+        { name: "トータルレジリエンスクリーム 50ml", qty: 2, unitPrice: 7920, retailPrice: 13200 },
+        { name: "バイオタイトセラム 30ml", qty: 2, unitPrice: 7260, retailPrice: 12100 },
+        { name: "エンチャンティングボディクリーム 300ml", qty: 2, unitPrice: 2970, retailPrice: 4950 },
+      ]
+    },
   },
   comodex: {
     name: "コモデックス",
@@ -985,234 +1636,219 @@ const SERIES_DATA = {
     basic: {
       label: "ベーシックプラン",
       items: [
-        { name: "コモデックス クリーン & マット クリンザー", qty: 2, unitPrice: 8800 },
-        { name: "コモデックス クリアリファイニング トナー", qty: 2, unitPrice: 9200 },
-        { name: "コモデックス カーミング セラム", qty: 1, unitPrice: 19800 },
-        { name: "コモデックス マット コントロール クリーム", qty: 1, unitPrice: 21000 },
-      ]
-    },
-    special: {
-      label: "スペシャルプラン",
-      items: [
-        { name: "コモデックス クリーン & マット クリンザー", qty: 2, unitPrice: 8800 },
-        { name: "コモデックス クリアリファイニング トナー", qty: 2, unitPrice: 9200 },
-        { name: "コモデックス カーミング セラム", qty: 2, unitPrice: 19800 },
-        { name: "コモデックス マット コントロール クリーム", qty: 2, unitPrice: 21000 },
-        { name: "コモデックス ポア ミニマイジング マスク", qty: 1, unitPrice: 15000 },
-        { name: "コモデックス スポット トリートメント", qty: 1, unitPrice: 11000 },
+        { name: "STEP1 クリーンクリアクレンザー 500ml", qty: 1, unitPrice: 8800 },
+        { name: "STEP2 スクラブ&スムースエクスフォリエイター 250ml", qty: 1, unitPrice: 9900 },
+        { name: "STEP3A トリート&リジェネレイトピール 150ml", qty: 1, unitPrice: 11000 },
+        { name: "STEP4 S&Dソリューション 300ml", qty: 1, unitPrice: 11000 },
+        { name: "STEP5 ブライト&バランスソリューション 300ml", qty: 1, unitPrice: 11000 },
+        { name: "STEP6 アストリング＆リギュレイトマスク 250ml", qty: 1, unitPrice: 7700 },
+        { name: "STEP7 マッティフィ＆プロテクトクリームSPF15 150g", qty: 1, unitPrice: 7700 },
+        { name: "クリーン＆クリアクレンザー 250ml", qty: 1, unitPrice: 4620, retailPrice: 7700 },
+        { name: "プリフィ＆バランストナー 300ml", qty: 1, unitPrice: 4620, retailPrice: 7700 },
+        { name: "ハイドレートセラム 30ml", qty: 1, unitPrice: 5940, retailPrice: 9900 },
+        { name: "コントロール＆リギュレイトデイトリートメント 50ml", qty: 1, unitPrice: 4620, retailPrice: 7700 },
+        { name: "マッティフィ＆プロテクトクリームSPF15 75ml", qty: 1, unitPrice: 5016, retailPrice: 8360 },
+        { name: "リニュー&リペアナイトトリートメント 50ml", qty: 1, unitPrice: 4620, retailPrice: 7700 },
+        { name: "スクラブ&スムースエクスフォリエイター 75ml", qty: 1, unitPrice: 3960, retailPrice: 6600 },
+        { name: "スムース＆リギュレイトマスク 75ml", qty: 1, unitPrice: 3960, retailPrice: 6600 },
+        { name: "カバー＆シールドクリーム 30g", qty: 1, unitPrice: 5610, retailPrice: 9350 },
       ]
     },
     homecare: {
       label: "ホームケアプラン",
       suggestions: [
-        { name: "コモデックス クリーン & マット クリンザー 150ml", qty: 1, unitPrice: 5500 },
-        { name: "コモデックス クリアリファイニング トナー 300ml", qty: 1, unitPrice: 5800 },
-        { name: "コモデックス カーミング セラム 30ml", qty: 1, unitPrice: 12000 },
-        { name: "コモデックス マット コントロール クリーム 50ml", qty: 1, unitPrice: 13000 },
-        { name: "コモデックス ポア ミニマイジング マスク 75ml", qty: 1, unitPrice: 9200 },
+        { name: "クリーン＆クリアクレンザー 250ml", qty: 1, unitPrice: 4620, retailPrice: 7700 },
+        { name: "プリフィ＆バランストナー 300ml", qty: 1, unitPrice: 4620, retailPrice: 7700 },
+        { name: "ハイドレートセラム 30ml", qty: 1, unitPrice: 5940, retailPrice: 9900 },
+        { name: "コントロール＆リギュレイトデイトリートメント 50ml", qty: 1, unitPrice: 4620, retailPrice: 7700 },
+        { name: "マッティフィ＆プロテクトクリームSPF15 75ml", qty: 1, unitPrice: 5016, retailPrice: 8360 },
+        { name: "リニュー&リペアナイトトリートメント 50ml", qty: 1, unitPrice: 4620, retailPrice: 7700 },
+        { name: "スクラブ&スムースエクスフォリエイター 75ml", qty: 1, unitPrice: 3960, retailPrice: 6600 },
+        { name: "スムース＆リギュレイトマスク 75ml", qty: 1, unitPrice: 3960, retailPrice: 6600 },
+        { name: "カバー＆シールドクリーム 30g", qty: 1, unitPrice: 5610, retailPrice: 9350 },
       ]
-    }
+    },
+    gyomu: {
+      label: "業務用プラン",
+      items: [
+        { name: "STEP1 クリーンクリアクレンザー 500ml", qty: 1, unitPrice: 8800 },
+        { name: "STEP2 スクラブ&スムースエクスフォリエイター 250ml", qty: 1, unitPrice: 9900 },
+        { name: "STEP3A トリート&リジェネレイトピール 150ml", qty: 1, unitPrice: 11000 },
+        { name: "STEP4 S&Dソリューション 300ml", qty: 1, unitPrice: 11000 },
+        { name: "STEP5 ブライト&バランスソリューション 300ml", qty: 1, unitPrice: 11000 },
+        { name: "STEP6 アストリング＆リギュレイトマスク 250ml", qty: 1, unitPrice: 7700 },
+        { name: "STEP7 マッティフィ＆プロテクトクリームSPF15 150g", qty: 1, unitPrice: 7700 },
+      ]
+    },
+    special: {
+      label: "スペシャルプラン",
+      items: [
+        { name: "STEP1 クリーンクリアクレンザー 500ml", qty: 1, unitPrice: 8800 },
+        { name: "STEP2 スクラブ&スムースエクスフォリエイター 250ml", qty: 1, unitPrice: 9900 },
+        { name: "STEP3A トリート&リジェネレイトピール 150ml", qty: 1, unitPrice: 11000 },
+        { name: "STEP4 S&Dソリューション 300ml", qty: 1, unitPrice: 11000 },
+        { name: "STEP5 ブライト&バランスソリューション 300ml", qty: 1, unitPrice: 11000 },
+        { name: "STEP6 アストリング＆リギュレイトマスク 250ml", qty: 1, unitPrice: 7700 },
+        { name: "STEP7 マッティフィ＆プロテクトクリームSPF15 150g", qty: 1, unitPrice: 7700 },
+        { name: "クリーン＆クリアクレンザー 250ml", qty: 2, unitPrice: 4620, retailPrice: 7700 },
+        { name: "プリフィ＆バランストナー 300ml", qty: 2, unitPrice: 4620, retailPrice: 7700 },
+        { name: "ハイドレートセラム 30ml", qty: 2, unitPrice: 5940, retailPrice: 9900 },
+        { name: "コントロール＆リギュレイトデイトリートメント 50ml", qty: 2, unitPrice: 4620, retailPrice: 7700 },
+        { name: "マッティフィ＆プロテクトクリームSPF15 75ml", qty: 2, unitPrice: 5016, retailPrice: 8360 },
+        { name: "リニュー&リペアナイトトリートメント 50ml", qty: 2, unitPrice: 4620, retailPrice: 7700 },
+        { name: "スクラブ&スムースエクスフォリエイター 75ml", qty: 2, unitPrice: 3960, retailPrice: 6600 },
+        { name: "スムース＆リギュレイトマスク 75ml", qty: 2, unitPrice: 3960, retailPrice: 6600 },
+        { name: "カバー＆シールドクリーム 30g", qty: 2, unitPrice: 5610, retailPrice: 9350 },
+      ]
+    },
   },
-  illuminage: {
-    name: "イルミネイジ",
-    nameEn: "ILLUMINAGE",
+  nuance: {
+    name: "ニュアンス",
+    nameEn: "NUANCE",
     basic: {
       label: "ベーシックプラン",
       items: [
-        { name: "イルミネイジ ラジアント クリンザー", qty: 2, unitPrice: 9500 },
-        { name: "イルミネイジ ルミノシティ トナー", qty: 2, unitPrice: 10500 },
-        { name: "イルミネイジ ブライトニング セラム", qty: 1, unitPrice: 24000 },
-        { name: "イルミネイジ ラジアント クリーム", qty: 1, unitPrice: 26000 },
-      ]
-    },
-    special: {
-      label: "スペシャルプラン",
-      items: [
-        { name: "イルミネイジ ラジアント クリンザー", qty: 2, unitPrice: 9500 },
-        { name: "イルミネイジ ルミノシティ トナー", qty: 2, unitPrice: 10500 },
-        { name: "イルミネイジ ブライトニング セラム", qty: 2, unitPrice: 24000 },
-        { name: "イルミネイジ ラジアント クリーム", qty: 2, unitPrice: 26000 },
-        { name: "イルミネイジ グロウ マスク", qty: 1, unitPrice: 17600 },
-        { name: "イルミネイジ アイ ブライトニング コンセントレート", qty: 1, unitPrice: 19800 },
+        { name: "STEP１ プレピールクレンザー 300ml", qty: 1, unitPrice: 8800 },
+        { name: "STEP２ グリコ ミネラル ピール 100ml", qty: 1, unitPrice: 11000 },
+        { name: "STEP３ グリコ ミネラル ピール マスク 250ml", qty: 1, unitPrice: 9900 },
+        { name: "STEP４ グレプデュー ハイドレーティング トニック 100ml", qty: 1, unitPrice: 8800 },
+        { name: "STEP5 アイズ アップ ブースター マスク 75ml", qty: 1, unitPrice: 8800 },
+        { name: "STEP6 インテンス リペア クリーム リッチ 500ml", qty: 1, unitPrice: 12100 },
+        { name: "STEP7 マリン アルゲ クーリング マスク 500ml", qty: 1, unitPrice: 13200 },
+        { name: "STEP8 イモーテル インフューズド エリクサー セラム 100ml", qty: 1, unitPrice: 13200 },
+        { name: "STEP9A プロテクティブ デイウェアSPF30 150ml", qty: 1, unitPrice: 14300 },
+        { name: "STEP9B プロコラーゲン ラディアンスクリーム 150ml", qty: 1, unitPrice: 9900 },
+        { name: "ラズベリー クレンジング エマルジョン 300ml", qty: 1, unitPrice: 4620, retailPrice: 7700 },
+        { name: "グレープデュー ハイドレーティング トニック 100ml", qty: 1, unitPrice: 3630, retailPrice: 6050 },
+        { name: "プロ コラーゲン バイタリティ クリーム 50ml", qty: 1, unitPrice: 7260, retailPrice: 12100 },
+        { name: "プロテクティブ デイ ウェア SPF30 75ml", qty: 1, unitPrice: 6270, retailPrice: 10450 },
+        { name: "レッド クローバー タイトニング マスク 50ml", qty: 1, unitPrice: 4620, retailPrice: 7700 },
+        { name: "アドバンス ファーミング ネック クリーム 50ml", qty: 1, unitPrice: 6600, retailPrice: 11000 },
+        { name: "アイズアップ ブースター クリーム 30ml", qty: 1, unitPrice: 6270, retailPrice: 10450 },
+        { name: "トータル コレクター セラム 30ml", qty: 1, unitPrice: 7260, retailPrice: 12100 },
+        { name: "アブソリュート イモーテル 30ml", qty: 1, unitPrice: 7920, retailPrice: 13200 },
       ]
     },
     homecare: {
       label: "ホームケアプラン",
       suggestions: [
-        { name: "イルミネイジ ラジアント クリンザー 150ml", qty: 1, unitPrice: 6000 },
-        { name: "イルミネイジ ルミノシティ トナー 300ml", qty: 1, unitPrice: 7000 },
-        { name: "イルミネイジ ブライトニング セラム 30ml", qty: 1, unitPrice: 14500 },
-        { name: "イルミネイジ ラジアント クリーム 50ml", qty: 1, unitPrice: 16000 },
+        { name: "ラズベリー クレンジング エマルジョン 300ml", qty: 1, unitPrice: 4620, retailPrice: 7700 },
+        { name: "グレープデュー ハイドレーティング トニック 100ml", qty: 1, unitPrice: 3630, retailPrice: 6050 },
+        { name: "プロ コラーゲン バイタリティ クリーム 50ml", qty: 1, unitPrice: 7260, retailPrice: 12100 },
+        { name: "プロテクティブ デイ ウェア SPF30 75ml", qty: 1, unitPrice: 6270, retailPrice: 10450 },
+        { name: "レッド クローバー タイトニング マスク 50ml", qty: 1, unitPrice: 4620, retailPrice: 7700 },
+        { name: "アドバンス ファーミング ネック クリーム 50ml", qty: 1, unitPrice: 6600, retailPrice: 11000 },
+        { name: "アイズアップ ブースター クリーム 30ml", qty: 1, unitPrice: 6270, retailPrice: 10450 },
+        { name: "トータル コレクター セラム 30ml", qty: 1, unitPrice: 7260, retailPrice: 12100 },
+        { name: "アブソリュート イモーテル 30ml", qty: 1, unitPrice: 7920, retailPrice: 13200 },
       ]
-    }
+    },
+    gyomu: {
+      label: "業務用プラン",
+      items: [
+        { name: "STEP１ プレピールクレンザー 300ml", qty: 1, unitPrice: 8800 },
+        { name: "STEP２ グリコ ミネラル ピール 100ml", qty: 1, unitPrice: 11000 },
+        { name: "STEP３ グリコ ミネラル ピール マスク 250ml", qty: 1, unitPrice: 9900 },
+        { name: "STEP４ グレプデュー ハイドレーティング トニック 100ml", qty: 1, unitPrice: 8800 },
+        { name: "STEP5 アイズ アップ ブースター マスク 75ml", qty: 1, unitPrice: 8800 },
+        { name: "STEP6 インテンス リペア クリーム リッチ 500ml", qty: 1, unitPrice: 12100 },
+        { name: "STEP7 マリン アルゲ クーリング マスク 500ml", qty: 1, unitPrice: 13200 },
+        { name: "STEP8 イモーテル インフューズド エリクサー セラム 100ml", qty: 1, unitPrice: 13200 },
+        { name: "STEP9A プロテクティブ デイウェアSPF30 150ml", qty: 1, unitPrice: 14300 },
+        { name: "STEP9B プロコラーゲン ラディアンスクリーム 150ml", qty: 1, unitPrice: 9900 },
+      ]
+    },
+    special: {
+      label: "スペシャルプラン",
+      items: [
+        { name: "STEP１ プレピールクレンザー 300ml", qty: 1, unitPrice: 8800 },
+        { name: "STEP２ グリコ ミネラル ピール 100ml", qty: 1, unitPrice: 11000 },
+        { name: "STEP３ グリコ ミネラル ピール マスク 250ml", qty: 1, unitPrice: 9900 },
+        { name: "STEP４ グレプデュー ハイドレーティング トニック 100ml", qty: 1, unitPrice: 8800 },
+        { name: "STEP5 アイズ アップ ブースター マスク 75ml", qty: 1, unitPrice: 8800 },
+        { name: "STEP6 インテンス リペア クリーム リッチ 500ml", qty: 1, unitPrice: 12100 },
+        { name: "STEP7 マリン アルゲ クーリング マスク 500ml", qty: 1, unitPrice: 13200 },
+        { name: "STEP8 イモーテル インフューズド エリクサー セラム 100ml", qty: 1, unitPrice: 13200 },
+        { name: "STEP9A プロテクティブ デイウェアSPF30 150ml", qty: 1, unitPrice: 14300 },
+        { name: "STEP9B プロコラーゲン ラディアンスクリーム 150ml", qty: 1, unitPrice: 9900 },
+        { name: "ラズベリー クレンジング エマルジョン 300ml", qty: 2, unitPrice: 4620, retailPrice: 7700 },
+        { name: "グレープデュー ハイドレーティング トニック 100ml", qty: 2, unitPrice: 3630, retailPrice: 6050 },
+        { name: "プロ コラーゲン バイタリティ クリーム 50ml", qty: 2, unitPrice: 7260, retailPrice: 12100 },
+        { name: "プロテクティブ デイ ウェア SPF30 75ml", qty: 2, unitPrice: 6270, retailPrice: 10450 },
+        { name: "レッド クローバー タイトニング マスク 50ml", qty: 2, unitPrice: 4620, retailPrice: 7700 },
+        { name: "アドバンス ファーミング ネック クリーム 50ml", qty: 2, unitPrice: 6600, retailPrice: 11000 },
+        { name: "アイズアップ ブースター クリーム 30ml", qty: 2, unitPrice: 6270, retailPrice: 10450 },
+        { name: "トータル コレクター セラム 30ml", qty: 2, unitPrice: 7260, retailPrice: 12100 },
+        { name: "アブソリュート イモーテル 30ml", qty: 2, unitPrice: 7920, retailPrice: 13200 },
+      ]
+    },
   },
-  platinum: {
-    name: "プラチナム",
-    nameEn: "PLATINUM",
-    basic: {
-      label: "ベーシックプラン",
-      items: [
-        { name: "プラチナム ラグジュアリー クリンザー", qty: 2, unitPrice: 12000 },
-        { name: "プラチナム エッセンシャル トナー", qty: 2, unitPrice: 13000 },
-        { name: "プラチナム ペプチド セラム", qty: 1, unitPrice: 35000 },
-        { name: "プラチナム ラグジュアリー クリーム", qty: 1, unitPrice: 42000 },
-      ]
-    },
-    special: {
-      label: "スペシャルプラン",
-      items: [
-        { name: "プラチナム ラグジュアリー クリンザー", qty: 2, unitPrice: 12000 },
-        { name: "プラチナム エッセンシャル トナー", qty: 2, unitPrice: 13000 },
-        { name: "プラチナム ペプチド セラム", qty: 2, unitPrice: 35000 },
-        { name: "プラチナム ラグジュアリー クリーム", qty: 2, unitPrice: 42000 },
-        { name: "プラチナム アンチエイジング マスク", qty: 1, unitPrice: 24000 },
-        { name: "プラチナム アイ リフティング コンセントレート", qty: 1, unitPrice: 28000 },
-      ]
-    },
+  nude: {
+    name: "ヌード",
+    nameEn: "NUDE",
     homecare: {
       label: "ホームケアプラン",
       suggestions: [
-        { name: "プラチナム ラグジュアリー クリンザー 150ml", qty: 1, unitPrice: 7500 },
-        { name: "プラチナム エッセンシャル トナー 300ml", qty: 1, unitPrice: 8500 },
-        { name: "プラチナム ペプチド セラム 30ml", qty: 1, unitPrice: 22000 },
-        { name: "プラチナム ラグジュアリー クリーム 50ml", qty: 1, unitPrice: 26000 },
-        { name: "プラチナム アンチエイジング マスク 75ml", qty: 1, unitPrice: 15000 },
+        { name: "バランシングクレンザー 300ml", qty: 1, unitPrice: 3300, retailPrice: 5500 },
+        { name: "ラディアンスセラム 100ml", qty: 1, unitPrice: 3960, retailPrice: 6600 },
+        { name: "モイスチャライジングボディミルク 50ml", qty: 1, unitPrice: 3630, retailPrice: 6050 },
+        { name: "マルベリーエンザイマティクスクラブ 75ml", qty: 1, unitPrice: 4488, retailPrice: 7480 },
       ]
-    }
+    },
   },
-  royal: {
-    name: "ロイヤル",
-    nameEn: "ROYAL",
-    basic: {
-      label: "ベーシックプラン",
-      items: [
-        { name: "ロイヤル プレステージ クリンザー", qty: 2, unitPrice: 13500 },
-        { name: "ロイヤル プレステージ トナー", qty: 2, unitPrice: 14500 },
-        { name: "ロイヤル ゴールデン セラム", qty: 1, unitPrice: 44000 },
-        { name: "ロイヤル プレステージ クリーム", qty: 1, unitPrice: 55000 },
-      ]
-    },
-    special: {
-      label: "スペシャルプラン",
-      items: [
-        { name: "ロイヤル プレステージ クリンザー", qty: 2, unitPrice: 13500 },
-        { name: "ロイヤル プレステージ トナー", qty: 2, unitPrice: 14500 },
-        { name: "ロイヤル ゴールデン セラム", qty: 2, unitPrice: 44000 },
-        { name: "ロイヤル プレステージ クリーム", qty: 2, unitPrice: 55000 },
-        { name: "ロイヤル リフティング マスク", qty: 1, unitPrice: 29000 },
-        { name: "ロイヤル アイ & リップ コンセントレート", qty: 1, unitPrice: 33000 },
-      ]
-    },
+  terraskin: {
+    name: "テラスキン",
+    nameEn: "TERRA SKIN",
     homecare: {
       label: "ホームケアプラン",
       suggestions: [
-        { name: "ロイヤル プレステージ クリンザー 150ml", qty: 1, unitPrice: 8500 },
-        { name: "ロイヤル プレステージ トナー 300ml", qty: 1, unitPrice: 9500 },
-        { name: "ロイヤル ゴールデン セラム 30ml", qty: 1, unitPrice: 27000 },
-        { name: "ロイヤル プレステージ クリーム 50ml", qty: 1, unitPrice: 34000 },
+        { name: "テラスキン 30ml", qty: 1, unitPrice: 4950, retailPrice: 8250 },
       ]
-    }
+    },
   },
-  silk: {
-    name: "シルク",
-    nameEn: "SILK",
-    basic: {
-      label: "ベーシックプラン",
-      items: [
-        { name: "シルク スムース クリンザー", qty: 2, unitPrice: 8200 },
-        { name: "シルク スムース トナー", qty: 2, unitPrice: 9000 },
-        { name: "シルク ハイドレーティング セラム", qty: 1, unitPrice: 18000 },
-        { name: "シルク ベルベット クリーム", qty: 1, unitPrice: 22000 },
-      ]
-    },
-    special: {
-      label: "スペシャルプラン",
-      items: [
-        { name: "シルク スムース クリンザー", qty: 2, unitPrice: 8200 },
-        { name: "シルク スムース トナー", qty: 2, unitPrice: 9000 },
-        { name: "シルク ハイドレーティング セラム", qty: 2, unitPrice: 18000 },
-        { name: "シルク ベルベット クリーム", qty: 2, unitPrice: 22000 },
-        { name: "シルク モイスチャー マスク", qty: 1, unitPrice: 13200 },
-        { name: "シルク スムース アイ コントア", qty: 1, unitPrice: 15400 },
-      ]
-    },
+  biosatin: {
+    name: "ビオサテンセラム",
+    nameEn: "BIO SATIN SERUM",
     homecare: {
       label: "ホームケアプラン",
       suggestions: [
-        { name: "シルク スムース クリンザー 150ml", qty: 1, unitPrice: 5000 },
-        { name: "シルク スムース トナー 300ml", qty: 1, unitPrice: 5800 },
-        { name: "シルク ハイドレーティング セラム 30ml", qty: 1, unitPrice: 11000 },
-        { name: "シルク ベルベット クリーム 50ml", qty: 1, unitPrice: 13500 },
+        { name: "ビオサテンセラム 30ml", qty: 1, unitPrice: 7920, retailPrice: 13200 },
       ]
-    }
+    },
   },
-  multipolar: {
-    name: "マルチポーラー",
-    nameEn: "MULTIPOLAR",
-    basic: {
-      label: "ベーシックプラン",
-      items: [
-        { name: "マルチポーラー アクティブ クリンザー", qty: 2, unitPrice: 9800 },
-        { name: "マルチポーラー コンダクティング トナー", qty: 2, unitPrice: 11000 },
-        { name: "マルチポーラー ファーミング セラム", qty: 1, unitPrice: 28000 },
-        { name: "マルチポーラー リフト & タイト クリーム", qty: 1, unitPrice: 33000 },
-      ]
-    },
-    special: {
-      label: "スペシャルプラン",
-      items: [
-        { name: "マルチポーラー アクティブ クリンザー", qty: 2, unitPrice: 9800 },
-        { name: "マルチポーラー コンダクティング トナー", qty: 2, unitPrice: 11000 },
-        { name: "マルチポーラー ファーミング セラム", qty: 2, unitPrice: 28000 },
-        { name: "マルチポーラー リフト & タイト クリーム", qty: 2, unitPrice: 33000 },
-        { name: "マルチポーラー コンタリング マスク", qty: 1, unitPrice: 19800 },
-        { name: "マルチポーラー アイ リフト", qty: 1, unitPrice: 22000 },
-      ]
-    },
+  bodycream: {
+    name: "ボディクリーム",
+    nameEn: "BODY CREAM",
     homecare: {
       label: "ホームケアプラン",
       suggestions: [
-        { name: "マルチポーラー アクティブ クリンザー 150ml", qty: 1, unitPrice: 6200 },
-        { name: "マルチポーラー コンダクティング トナー 300ml", qty: 1, unitPrice: 7200 },
-        { name: "マルチポーラー ファーミング セラム 30ml", qty: 1, unitPrice: 17500 },
-        { name: "マルチポーラー リフト & タイト クリーム 50ml", qty: 1, unitPrice: 20500 },
-        { name: "マルチポーラー コンタリング マスク 75ml", qty: 1, unitPrice: 12500 },
+        { name: "エンチャンティングボディクリーム 30ml", qty: 1, unitPrice: 2970, retailPrice: 4950 },
       ]
-    }
+    },
   },
-  forever: {
-    name: "フォーエバー",
-    nameEn: "FOREVER YOUNG",
-    basic: {
-      label: "ベーシックプラン",
-      items: [
-        { name: "フォーエバー ユース クリンザー", qty: 2, unitPrice: 11000 },
-        { name: "フォーエバー ユース トナー", qty: 2, unitPrice: 12000 },
-        { name: "フォーエバー ユース セラム", qty: 1, unitPrice: 32000 },
-        { name: "フォーエバー ユース クリーム", qty: 1, unitPrice: 38000 },
-      ]
-    },
-    special: {
-      label: "スペシャルプラン",
-      items: [
-        { name: "フォーエバー ユース クリンザー", qty: 2, unitPrice: 11000 },
-        { name: "フォーエバー ユース トナー", qty: 2, unitPrice: 12000 },
-        { name: "フォーエバー ユース セラム", qty: 2, unitPrice: 32000 },
-        { name: "フォーエバー ユース クリーム", qty: 2, unitPrice: 38000 },
-        { name: "フォーエバー ユース マスク", qty: 1, unitPrice: 22000 },
-        { name: "フォーエバー ユース アイ コンセントレート", qty: 1, unitPrice: 25000 },
-      ]
-    },
+  linerepair: {
+    name: "ラインリペア",
+    nameEn: "LINE REPAIR",
     homecare: {
       label: "ホームケアプラン",
       suggestions: [
-        { name: "フォーエバー ユース クリンザー 150ml", qty: 1, unitPrice: 7000 },
-        { name: "フォーエバー ユース トナー 300ml", qty: 1, unitPrice: 8000 },
-        { name: "フォーエバー ユース セラム 30ml", qty: 1, unitPrice: 20000 },
-        { name: "フォーエバー ユース クリーム 50ml", qty: 1, unitPrice: 24000 },
-        { name: "フォーエバー ユース マスク 75ml", qty: 1, unitPrice: 14000 },
+        { name: "ハイドラフュージョンコンセントレート 30ml", qty: 1, unitPrice: 5214, retailPrice: 8690 },
+        { name: "モイスチャライジングミセラミルク 300ml", qty: 1, unitPrice: 3630, retailPrice: 6050 },
+        { name: "ラディアンスファームデイクリーム 60ml", qty: 1, unitPrice: 5940, retailPrice: 9900 },
+        { name: "ラディアンスリビールセラム 30ml", qty: 1, unitPrice: 5214, retailPrice: 8690 },
+        { name: "サテンスムースナイトクリーム 50ml", qty: 1, unitPrice: 5940, retailPrice: 9900 },
+        { name: "AHA BHA アクティブクレンザー 250ml", qty: 1, unitPrice: 3630, retailPrice: 6050 },
+        { name: "エラスチンコラーゲンクリーム 60ml", qty: 1, unitPrice: 4950, retailPrice: 8250 },
+        { name: "ラチックアクティブトナー 300ml", qty: 1, unitPrice: 3960, retailPrice: 6600 },
+        { name: "ラチックナイトリペア 60ml", qty: 1, unitPrice: 5940, retailPrice: 9900 },
+        { name: "オーキッドハイドレーションマスク 60ml", qty: 1, unitPrice: 5214, retailPrice: 8690 },
+        { name: "バクチオールデイクリーム 60ml", qty: 1, unitPrice: 5940, retailPrice: 9900 },
+        { name: "バイオシールドセラム 30ml", qty: 1, unitPrice: 5940, retailPrice: 9990 },
+        { name: "ナイアシンアミドナイトクリーム 60ml", qty: 1, unitPrice: 5940, retailPrice: 9900 },
+        { name: "ピュアナチュラルクレンザー 250ml", qty: 1, unitPrice: 3300, retailPrice: 5500 },
+        { name: "スーパーフードアクアミスト 100ml", qty: 1, unitPrice: 3300, retailPrice: 5500 },
       ]
-    }
+    },
   }
 };
 
@@ -1221,6 +1857,72 @@ const SERIES_DATA = {
 // ════════════════════════════════════════
 let selectedSeries = []; // { id, seriesKey, planKey, items: [{name,qty,unitPrice}] }
 let itemCounter = 0;
+
+// 講習費・発行費の個数管理
+const LESSON_ITEMS = {
+  lesson55:  { label: '講習費（ディプロマ発行費を含む）', price: 55000, qty: 0 },
+  lesson528: { label: '講習費（業店）',                   price: 52800, qty: 0 },
+  lesson27:  { label: '講習費（店販のみ）',               price: 27500, qty: 0 },
+  lesson253: { label: '講習費（店のみ）',                 price: 25300, qty: 0 },
+  diploma:   { label: 'ディプロマ発行費',                 price: 2200,  qty: 0 },
+};
+
+// ════════════════════════════════════════
+// 掛け率管理
+// ════════════════════════════════════════
+let currentRate = 0.6; // デフォルト6掛け
+
+function setRate(rate) {
+  currentRate = rate;
+
+  // ボタンのactive切り替え
+  document.querySelectorAll('.rate-btn').forEach(btn => {
+    btn.classList.toggle('active', parseFloat(btn.dataset.rate) === rate);
+  });
+
+  // 追加済みの全シリーズのホームケア商材に掛け率を再適用
+  selectedSeries.forEach(s => {
+    const planData = SERIES_DATA[s.seriesKey][s.planKey];
+    const baseItems = s.planKey === 'homecare'
+      ? planData.suggestions
+      : planData.items;
+
+    s.items.forEach((item, idx) => {
+      const base = baseItems[idx];
+      if (!base) return;
+      if (base.retailPrice) {
+        // 定価がある＝ホームケア商材 → 掛け率を適用
+        item.unitPrice = Math.round(base.retailPrice * rate);
+      }
+    });
+  });
+
+  renderSeriesList();
+  updateTotal();
+}
+
+// 掛け率を適用してitemsを生成するヘルパー
+function applyRate(items) {
+  return items.map(i => {
+    const item = { ...i };
+    if (item.retailPrice) {
+      item.unitPrice = Math.round(item.retailPrice * currentRate);
+    }
+    return item;
+  });
+}
+
+function changeLesson(key, delta) {
+  const item = LESSON_ITEMS[key];
+  item.qty = Math.max(0, item.qty + delta);
+  document.getElementById(key + '-display').textContent  = item.qty;
+  document.getElementById(key + '-subtotal').textContent = item.qty > 0 ? '¥' + num(item.price * item.qty) : '¥0';
+  updateTotal();
+}
+
+function calcLessonTotal() {
+  return Object.values(LESSON_ITEMS).reduce((s, i) => s + i.price * i.qty, 0);
+}
 
 // ════════════════════════════════════════
 // 初期化（日付は自動設定）
@@ -1239,6 +1941,10 @@ let itemCounter = 0;
   const label = `${today.getFullYear()}年${today.getMonth()+1}月${today.getDate()}日`;
   const el = document.getElementById('todayLabel');
   if (el) el.textContent = label;
+  // デフォルト掛け率（6掛け）のボタンをactive化
+  document.querySelectorAll('.rate-btn').forEach(btn => {
+    btn.classList.toggle('active', parseFloat(btn.dataset.rate) === currentRate);
+  });
 })();
 
 // ════════════════════════════════════════
@@ -1254,9 +1960,10 @@ function addSeries() {
   const series = SERIES_DATA[seriesKey];
   const planData = series[planKey];
   const id = ++itemCounter;
-  let items = planKey === 'homecare'
-    ? planData.suggestions.map(i => ({ ...i }))
-    : planData.items.map(i => ({ ...i }));
+  const baseItems = planKey === 'homecare'
+    ? planData.suggestions
+    : planData.items;
+  let items = applyRate(baseItems); // 掛け率を適用して生成
 
   selectedSeries.push({ id, seriesKey, planKey, items });
   renderSeriesList();
@@ -1282,41 +1989,37 @@ function renderSeriesList() {
 }
 
 function renderSeriesCard(s) {
-  const series = SERIES_DATA[s.seriesKey];
-  const planLabel = { basic: 'ベーシック', special: 'スペシャル', homecare: 'ホームケア' }[s.planKey];
-  const isFixed = s.planKey !== 'homecare';
-  const subtotal = calcSubtotal(s);
+  const series    = SERIES_DATA[s.seriesKey];
+  const planLabel = { basic: 'ベーシック', special: 'スペシャル', homecare: 'ホームケア', gyomu: '業務用' }[s.planKey];
+  const isHomecare = s.planKey === 'homecare';
+  const subtotal  = calcSubtotal(s);
 
+  // 全プランで数量・単価・削除を編集可能
+  // 商品名はホームケアのみ編集可（他プランは固定表示）
   const rows = s.items.map((item, idx) => {
     const amount = item.qty * item.unitPrice;
-    if (isFixed) {
-      return `<tr>
-        <td>${item.name}</td>
-        <td style="text-align:center">${item.qty}</td>
-        <td class="amount">¥${num(item.unitPrice)}</td>
-        <td class="amount">¥${num(amount)}</td>
-        <td></td>
-      </tr>`;
-    } else {
-      return `<tr>
-        <td><input type="text" value="${item.name}" onchange="updateItem(${s.id},${idx},'name',this.value)" /></td>
-        <td><input type="number" value="${item.qty}" min="1" onchange="updateItem(${s.id},${idx},'qty',this.value)" /></td>
-        <td class="amount"><input type="number" value="${item.unitPrice}" min="0" step="100" style="width:100px;text-align:right" onchange="updateItem(${s.id},${idx},'unitPrice',this.value)" /></td>
-        <td class="amount" id="amt_${s.id}_${idx}">¥${num(amount)}</td>
-        <td><button class="btn btn-danger" onclick="removeItem(${s.id},${idx})">削除</button></td>
-      </tr>`;
-    }
+    const nameCell = isHomecare
+      ? `<input type="text" value="${item.name}" onchange="updateItem(${s.id},${idx},'name',this.value)" />`
+      : `<span style="font-size:13px;">${item.name}</span>`;
+    return `<tr>
+      <td>${nameCell}</td>
+      <td><input type="number" value="${item.qty}" min="0" onchange="updateItem(${s.id},${idx},'qty',this.value)" /></td>
+      <td class="amount"><input type="number" value="${item.unitPrice}" min="0" step="100" style="width:100px;text-align:right" onchange="updateItem(${s.id},${idx},'unitPrice',this.value)" /></td>
+      <td class="amount" id="amt_${s.id}_${idx}">¥${num(amount)}</td>
+      <td>${isHomecare ? `<button class="btn btn-danger" onclick="removeItem(${s.id},${idx})">削除</button>` : ''}</td>
+    </tr>`;
   }).join('');
 
-  const suggestionChips = s.planKey === 'homecare'
+  // ホームケアのみ：候補チップ＋商品追加行
+  const suggestionChips = isHomecare
     ? `<div class="suggestions">
         <span style="font-weight:400;color:var(--mid);margin-right:4px">候補商品を追加：</span>
-        ${SERIES_DATA[s.seriesKey].homecare.suggestions.map((sg, si) =>
+        ${SERIES_DATA[s.seriesKey].homecare.suggestions.map(sg =>
           `<span class="suggestion-chip" onclick="addSuggestion(${s.id},'${sg.name.replace(/'/g,"\\'")}',${sg.unitPrice})">${sg.name}</span>`
         ).join('')}
       </div>` : '';
 
-  const addRow = s.planKey === 'homecare'
+  const addRow = isHomecare
     ? `<tr>
         <td colspan="5" style="padding:0">
           <div class="add-item-row">
@@ -1327,11 +2030,6 @@ function renderSeriesCard(s) {
           </div>
         </td>
       </tr>` : '';
-
-  const fixedNote = isFixed
-    ? `<div style="font-size:11px;color:var(--light);margin-bottom:8px">
-        <span class="fixed-badge">固定プラン</span> 内容は自動で設定されています
-      </div>` : '';
 
   return `
     <div class="series-card" id="card_${s.id}">
@@ -1346,16 +2044,18 @@ function renderSeriesCard(s) {
         </div>
       </div>
       <div class="series-card-body">
-        ${fixedNote}
+        <div style="font-size:11px;color:var(--light);margin-bottom:8px;">
+          数量・単価は直接編集できます${isHomecare ? '（商品の追加・削除も可）' : ''}
+        </div>
         ${suggestionChips}
         <table class="items-table">
           <thead>
             <tr>
-              <th style="width:45%">商品名</th>
-              <th style="width:8%;text-align:center">数量</th>
-              <th style="width:18%;text-align:right">単価（税込）</th>
+              <th style="width:44%">商品名</th>
+              <th style="width:9%;text-align:center">数量</th>
+              <th style="width:19%;text-align:right">単価（税込）</th>
               <th style="width:18%;text-align:right">金額</th>
-              <th style="width:11%"></th>
+              <th style="width:10%"></th>
             </tr>
           </thead>
           <tbody>${rows}</tbody>
@@ -1421,8 +2121,14 @@ function calcSubtotal(s) {
   return s.items.reduce((sum, i) => sum + i.qty * i.unitPrice, 0);
 }
 
-function calcTotal() {
+function calcSeriesTotal() {
+  // 商材費のみの合計（講習費除く）
   return selectedSeries.reduce((sum, s) => sum + calcSubtotal(s), 0);
+}
+
+function calcTotal() {
+  // 商材費 + 講習費・発行費の合計
+  return calcSeriesTotal() + calcLessonTotal();
 }
 
 function updateTotal() {
@@ -1449,182 +2155,531 @@ function closePreview() {
 // 見積書HTML生成（雛形に合わせたレイアウト）
 // ▼ PDF内の文言・レイアウトを変えるならここ ▼
 // ════════════════════════════════════════
-function buildEstimateHTML() {
-  const clientName = document.getElementById('clientName').value.trim() || '　';
-  const remarks    = document.getElementById('remarks').value.trim();
-  const total      = calcTotal();
-  const tax        = Math.round(total / 11);        // 消費税（税込÷11 で端数処理）
-  const preTax     = total - tax;                   // 税抜合計
 
-  // 今日の日付を自動生成
-  const today = new Date();
-  const issueDate = `${today.getFullYear()}年${today.getMonth()+1}月${today.getDate()}日`;
+// ════════════════════════════════════════
+// 書類種別の状態管理
+// ════════════════════════════════════════
+let currentDocType = 'estimate'; // 'estimate' or 'order'
 
-  // ── 明細行を生成（全シリーズのアイテムをフラットに並べる）──
-  // シリーズごとにグループ行＋商品行を出力
-  let detailRows = '';
-  let rowIndex = 0;
-  selectedSeries.forEach(s => {
-    const series    = SERIES_DATA[s.seriesKey];
-    const planLabel = { basic: 'ベーシックプラン', special: 'スペシャルプラン', homecare: 'ホームケアプラン' }[s.planKey];
-
-    // シリーズ名ヘッダー行
-    detailRows += `
-      <tr class="series-group-row">
-        <td colspan="4" style="background:#f0f0f0;font-size:11px;font-weight:500;padding:6px 10px;color:#333;letter-spacing:0.04em;">
-          【${series.name}　${series.nameEn}】${planLabel}
-        </td>
-      </tr>`;
-
-    // 商品行
-    s.items.forEach(item => {
-      const amount = item.qty * item.unitPrice;
-      const bg = rowIndex % 2 === 0 ? '#ffffff' : '#fafafa';
-      detailRows += `
-        <tr style="background:${bg}">
-          <td style="padding:9px 10px;border-bottom:1px solid #e8e8e8;font-size:12px;">${item.name}</td>
-          <td style="padding:9px 10px;border-bottom:1px solid #e8e8e8;font-size:12px;text-align:center;">${item.qty}</td>
-          <td style="padding:9px 10px;border-bottom:1px solid #e8e8e8;font-size:12px;text-align:right;">¥${num(item.unitPrice)}</td>
-          <td style="padding:9px 10px;border-bottom:1px solid #e8e8e8;font-size:12px;text-align:right;">¥${num(amount)}</td>
-        </tr>`;
-      rowIndex++;
-    });
+function updateDocType(val) {
+  currentDocType = val;
+  // ラベルのスタイルを切り替え
+  document.querySelectorAll('label[id^="label-"]').forEach(l => {
+    l.style.borderColor = 'var(--border)';
+    l.style.background  = 'var(--warm-white)';
+    l.style.color       = 'var(--mid)';
   });
+  const active = document.querySelector(`label[id="label-${val === 'estimate' ? 'estimate' : 'order'}"]`);
+  // estimate ラベルは id なしなので全ラジオで管理
+  document.querySelectorAll('label:has(input[name="docType"])').forEach(l => {
+    const inp = l.querySelector('input');
+    if (inp && inp.value === val) {
+      l.style.borderColor = 'var(--gold)';
+      l.style.background  = 'var(--gold)';
+      l.style.color       = 'white';
+    } else {
+      l.style.borderColor = 'var(--border)';
+      l.style.background  = 'var(--warm-white)';
+      l.style.color       = 'var(--mid)';
+    }
+  });
+}
 
-  // 行が少ない場合に空行を追加して見た目を整える（最低8行）
-  const totalItems = selectedSeries.reduce((n, s) => n + s.items.length + 1, 0); // +1はグループ行
-  const minRows = 8;
-  for (let i = totalItems; i < minRows; i++) {
-    const bg = rowIndex % 2 === 0 ? '#ffffff' : '#fafafa';
-    detailRows += `
-      <tr style="background:${bg}">
-        <td style="padding:9px 10px;border-bottom:1px solid #e8e8e8;height:34px;">&nbsp;</td>
-        <td style="padding:9px 10px;border-bottom:1px solid #e8e8e8;"></td>
-        <td style="padding:9px 10px;border-bottom:1px solid #e8e8e8;"></td>
-        <td style="padding:9px 10px;border-bottom:1px solid #e8e8e8;"></td>
-      </tr>`;
-    rowIndex++;
+// ════════════════════════════════════════
+// 見積書・発注書 HTML生成
+// ════════════════════════════════════════
+function buildEstimateHTML() {
+  return currentDocType === 'order' ? buildOrderHTML() : buildQuoteHTML();
+}
+
+// ────────────────────────────────────────
+// 共通定数
+// ────────────────────────────────────────
+const PAGE_STYLE = `
+  width:794px; min-height:1123px; padding:44px 52px 70px;
+  background:#ffffff; position:relative;
+  font-family:'Noto Sans JP',sans-serif; font-size:12px; color:#1a1a1a;
+  box-sizing:border-box;
+`;
+
+const FOOTER_HTML = `
+  <div style="position:absolute;bottom:28px;left:52px;right:52px;border-top:1px solid #ccc;
+    padding-top:8px;display:flex;justify-content:space-between;align-items:center;font-size:10px;color:#999;">
+    <span>株式会社クリスティーナジャパン　TEL 03-6812-9867　FAX 03-6332-9046　e-mail: info@christina-japan.com</span>
+    <span style="font-family:'Cormorant Garamond',serif;font-size:14px;letter-spacing:0.2em;color:#555;">—CHRISTINA—</span>
+  </div>
+`;
+
+function todayStr() {
+  const d = new Date();
+  return `${d.getFullYear()}/${d.getMonth()+1}/${d.getDate()}`;
+}
+
+function getClientName() {
+  return document.getElementById('clientName').value.trim() || '　';
+}
+
+function getRemarks() {
+  return document.getElementById('remarks').value.trim();
+}
+
+// ════════════════════════════════════════
+// ① お見積書（表紙 + 各シリーズ明細ページ）
+// ════════════════════════════════════════
+function buildQuoteHTML() {
+  const clientName = getClientName();
+  const remarks    = getRemarks();
+  const issueDate  = todayStr();
+
+  // ── 表紙：シリーズごとの行 ＋ 講習費行
+  const grandTotal  = calcTotal();           // 商材費 + 講習費すべて込み
+  const grandTax    = Math.round(grandTotal / 11);
+  const grandPreTax = grandTotal - grandTax;
+
+  const coverRows = selectedSeries.map(s => {
+    const series    = SERIES_DATA[s.seriesKey];
+    const planLabel = { basic:'ベーシック', special:'スペシャル', homecare:'ホームケア', gyomu:'業務用' }[s.planKey];
+    const sub       = calcSubtotal(s);
+    return `<tr>
+      <td style="padding:11px 14px;border-bottom:1px solid #e0e0e0;font-size:12px;line-height:1.6;">
+        ・${planLabel}　${series.nameEn}<br>
+        <span style="font-size:11px;color:#666;margin-left:1em;">（${series.name} 商材費）</span>
+      </td>
+      <td style="padding:11px 14px;border-bottom:1px solid #e0e0e0;text-align:center;font-size:12px;">1</td>
+      <td style="padding:11px 14px;border-bottom:1px solid #e0e0e0;text-align:right;font-size:12px;">¥${num(sub)}</td>
+      <td style="padding:11px 14px;border-bottom:1px solid #e0e0e0;text-align:right;font-size:12px;">¥${num(sub)}</td>
+    </tr>`;
+  }).join('');
+
+  // 講習費・発行費の行（LESSON_ITEMSから個数>0のものだけ出力）
+  const lessonRow = Object.values(LESSON_ITEMS)
+    .filter(item => item.qty > 0)
+    .map(item => `<tr>
+      <td style="padding:11px 14px;border-bottom:1px solid #e0e0e0;font-size:12px;">
+        ・${item.label}
+      </td>
+      <td style="padding:11px 14px;border-bottom:1px solid #e0e0e0;text-align:center;font-size:12px;">${item.qty}</td>
+      <td style="padding:11px 14px;border-bottom:1px solid #e0e0e0;text-align:right;font-size:12px;">¥${num(item.price)}</td>
+      <td style="padding:11px 14px;border-bottom:1px solid #e0e0e0;text-align:right;font-size:12px;">¥${num(item.price * item.qty)}</td>
+    </tr>`).join('');
+
+  // 空行（シリーズ行 + 講習費行を足して最低8行に）
+  const lessonRowCount = Object.values(LESSON_ITEMS).filter(i => i.qty > 0).length;
+  const filledRows     = selectedSeries.length + lessonRowCount;
+  let emptyRows = '';
+  for (let i = filledRows; i < 8; i++) {
+    emptyRows += `<tr>
+      <td style="padding:11px 14px;border-bottom:1px solid #e0e0e0;height:40px;"></td>
+      <td style="padding:11px 14px;border-bottom:1px solid #e0e0e0;"></td>
+      <td style="padding:11px 14px;border-bottom:1px solid #e0e0e0;"></td>
+      <td style="padding:11px 14px;border-bottom:1px solid #e0e0e0;"></td>
+    </tr>`;
   }
 
-  const remarksHtml = remarks
-    ? `<div style="white-space:pre-wrap;font-size:12px;color:#333;">${remarks}</div>`
-    : `<div style="font-size:12px;color:#ccc;">（備考なし）</div>`;
+  const remarksHtml = remarks || '';
 
-  // ── PDF 1枚のHTML（雛形レイアウト） ──
-  return `
-  <div id="estimate-html">
-  <div class="pdf-page" style="
-    width:794px;
-    min-height:1123px;
-    padding:48px 56px 56px;
-    background:#ffffff;
-    position:relative;
-    font-family:'Noto Sans JP',sans-serif;
-    font-size:13px;
-    color:#1a1a1a;
-    box-sizing:border-box;
-  ">
-
-    <!-- タイトル -->
-    <div style="text-align:center;margin-bottom:28px;">
-      <div style="font-size:26px;font-weight:700;letter-spacing:0.3em;color:#1a1a1a;">御　見　積　書</div>
+  // ── 表紙ページ
+  const coverPage = `
+  <div class="pdf-page" style="${PAGE_STYLE}">
+    <div style="text-align:center;margin-bottom:24px;">
+      <div style="font-size:24px;font-weight:700;letter-spacing:0.35em;">御　見　積　書</div>
     </div>
-
-    <!-- 上部：顧客情報（左）+ 会社情報（右） -->
-    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px;">
-
-      <!-- 左：顧客名・件名・説明 -->
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:18px;">
       <div style="flex:1;">
-        <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:14px;">
-          <div style="width:14px;height:14px;border-radius:50%;background:#1a1a1a;flex-shrink:0;margin-top:2px;"></div>
-          <div style="font-size:17px;font-weight:500;letter-spacing:0.06em;border-bottom:1.5px solid #1a1a1a;padding-bottom:2px;min-width:200px;">
+        <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:12px;">
+          <div style="width:13px;height:13px;border-radius:50%;background:#1a1a1a;flex-shrink:0;margin-top:3px;"></div>
+          <div style="font-size:16px;font-weight:500;border-bottom:1.5px solid #1a1a1a;padding-bottom:2px;min-width:180px;letter-spacing:0.04em;">
             ${clientName}　様
           </div>
         </div>
-        <div style="margin-bottom:6px;">
-          <span style="font-size:12px;color:#555;margin-right:8px;">件　名</span>
-          <span style="font-size:13px;font-weight:500;text-decoration:underline;">クリスティーナ化粧品初期導入セット</span>
+        <div style="margin-bottom:5px;font-size:12px;">
+          <span style="color:#555;margin-right:6px;">件　名</span>
+          <span style="font-weight:500;text-decoration:underline;text-underline-offset:3px;">クリスティーナ化粧品初期導入セット</span>
         </div>
-        <div style="font-size:12px;color:#333;margin-top:10px;line-height:1.6;">
-          下記のとおり、御見積を申し上げます。
-        </div>
-        <div style="margin-top:14px;font-size:11.5px;color:#333;line-height:2.0;">
+        <div style="font-size:12px;color:#333;margin-top:8px;">下記のとおり、御見積を申し上げます。</div>
+        <div style="margin-top:12px;font-size:11.5px;color:#333;line-height:2.1;">
           <div>納期：<span style="margin-left:1em;">別途ご相談</span></div>
           <div>支払い条件：<span style="margin-left:1em;">銀行振り込み</span></div>
           <div>見積り有効期限：<span style="margin-left:1em;">本見積書発行より１ヶ月以内</span></div>
         </div>
       </div>
-
-      <!-- 右：見積日・会社情報 -->
-      <div style="flex:0 0 230px;text-align:right;font-size:11.5px;color:#333;line-height:2.0;">
-        <div style="margin-bottom:6px;">見積日　${issueDate}</div>
-        <div style="font-size:13px;font-weight:700;color:#1a1a1a;margin-bottom:4px;">株式会社クリスティーナジャパン</div>
-        <div style="font-size:11px;color:#555;line-height:1.7;">
-          〒141-0001<br>
-          東京都品川区北品川5-1-18<br>
-          住友不動産大崎ツインビル東館7F<br>
-          TEL：03-6812-9867<br>
-          FAX：03-6332-9046
+      <div style="flex:0 0 210px;text-align:right;font-size:11px;color:#333;line-height:2.1;">
+        <div>見積日　${issueDate}</div>
+        <div style="font-size:13px;font-weight:700;color:#1a1a1a;margin-top:4px;">株式会社クリスティーナジャパン</div>
+        <div style="font-size:10.5px;color:#555;line-height:1.8;margin-top:4px;">
+          〒141-0001<br>東京都品川区北品川5-1-18<br>住友不動産大崎ツインビル東館7F<br>
+          TEL：03-6812-9867<br>FAX：03-6332-9046
         </div>
       </div>
     </div>
 
-    <!-- 合計金額ボックス（税抜合計・消費税・支払総額） -->
-    <table style="width:100%;border-collapse:collapse;margin-bottom:16px;font-size:12.5px;">
-      <thead>
-        <tr>
-          <th style="border:1px solid #bbb;padding:8px 12px;background:#f0f0f0;font-weight:500;text-align:center;width:33%;">税抜合計金額</th>
-          <th style="border:1px solid #bbb;padding:8px 12px;background:#f0f0f0;font-weight:500;text-align:center;width:33%;">消費税（10%）</th>
-          <th style="border:1px solid #bbb;padding:8px 12px;background:#f0f0f0;font-weight:500;text-align:center;width:34%;">支払総額</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td style="border:1px solid #bbb;padding:10px 12px;text-align:center;font-size:14px;font-weight:500;">¥${num(preTax)}</td>
-          <td style="border:1px solid #bbb;padding:10px 12px;text-align:center;font-size:14px;font-weight:500;">¥${num(tax)}</td>
-          <td style="border:1px solid #bbb;padding:10px 12px;text-align:center;font-size:14px;font-weight:700;color:#1a1a1a;">¥${num(total)}</td>
-        </tr>
-      </tbody>
+    <!-- 税抜/消費税/支払総額（講習費込み） -->
+    <table style="width:100%;border-collapse:collapse;margin-bottom:14px;font-size:12px;">
+      <thead><tr>
+        <th style="border:1px solid #bbb;padding:7px 12px;background:#f0f0f0;font-weight:500;text-align:center;width:33%;">税抜合計金額</th>
+        <th style="border:1px solid #bbb;padding:7px 12px;background:#f0f0f0;font-weight:500;text-align:center;width:33%;">消費税（10%）</th>
+        <th style="border:1px solid #bbb;padding:7px 12px;background:#f0f0f0;font-weight:500;text-align:center;width:34%;">支払総額</th>
+      </tr></thead>
+      <tbody><tr>
+        <td style="border:1px solid #bbb;padding:9px 12px;text-align:center;font-size:13px;font-weight:500;">¥${num(grandPreTax)}</td>
+        <td style="border:1px solid #bbb;padding:9px 12px;text-align:center;font-size:13px;font-weight:500;">¥${num(grandTax)}</td>
+        <td style="border:1px solid #bbb;padding:9px 12px;text-align:center;font-size:14px;font-weight:700;">¥${num(grandTotal)}</td>
+      </tr></tbody>
     </table>
 
-    <!-- 明細テーブル -->
-    <table style="width:100%;border-collapse:collapse;font-size:12px;margin-bottom:12px;">
-      <thead>
-        <tr>
-          <th style="border:1px solid #bbb;padding:8px 10px;background:#f0f0f0;font-weight:500;text-align:center;width:52%;">シリーズ詳細</th>
-          <th style="border:1px solid #bbb;padding:8px 10px;background:#f0f0f0;font-weight:500;text-align:center;width:10%;">数量</th>
-          <th style="border:1px solid #bbb;padding:8px 10px;background:#f0f0f0;font-weight:500;text-align:center;width:19%;">単価（税込）</th>
-          <th style="border:1px solid #bbb;padding:8px 10px;background:#f0f0f0;font-weight:500;text-align:center;width:19%;">合計（税込）</th>
-        </tr>
-      </thead>
-      <tbody>
-        ${detailRows}
-      </tbody>
+    <!-- シリーズ明細テーブル -->
+    <table style="width:100%;border-collapse:collapse;font-size:12px;margin-bottom:10px;">
+      <thead><tr>
+        <th style="border:1px solid #bbb;padding:7px 12px;background:#f0f0f0;font-weight:500;text-align:center;width:50%;">シリーズ詳細</th>
+        <th style="border:1px solid #bbb;padding:7px 12px;background:#f0f0f0;font-weight:500;text-align:center;width:10%;">数量</th>
+        <th style="border:1px solid #bbb;padding:7px 12px;background:#f0f0f0;font-weight:500;text-align:center;width:20%;">単価(税込)</th>
+        <th style="border:1px solid #bbb;padding:7px 12px;background:#f0f0f0;font-weight:500;text-align:center;width:20%;">合計(税込)</th>
+      </tr></thead>
+      <tbody>${coverRows}${lessonRow}${emptyRows}</tbody>
     </table>
 
     <!-- 備考欄 -->
-    <div style="border:1px solid #bbb;padding:10px 14px;min-height:56px;margin-bottom:24px;font-size:12px;color:#333;line-height:1.8;">
+    <div style="border:1px solid #bbb;padding:8px 12px;min-height:50px;font-size:12px;color:#333;line-height:1.8;">
       ${remarksHtml}
     </div>
 
-    <!-- 下部：CHRISTINAロゴライン -->
-    <div style="
-      position:absolute;
-      bottom:36px;
-      left:56px;
-      right:56px;
-      border-top:1px solid #ccc;
-      padding-top:10px;
-      display:flex;
-      justify-content:flex-end;
-      align-items:center;
-    ">
-      <div style="font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:300;letter-spacing:0.22em;color:#1a1a1a;">—CHRISTINA—</div>
+    ${FOOTER_HTML}
+  </div>`;
+
+  // ── 各シリーズの明細ページ
+  const detailPages = selectedSeries.map((s, idx) => {
+    const series    = SERIES_DATA[s.seriesKey];
+    const planLabel = { basic:'ベーシックプラン', special:'スペシャルプラン', homecare:'ホームケアプラン', gyomu:'業務用プラン' }[s.planKey];
+    const sub       = calcSubtotal(s);
+    const isHomecare = s.planKey === 'homecare';
+
+    // シリーズロゴ（nameEnをスタイリッシュに表示）
+    const seriesLogo = `
+      <div style="display:inline-block;font-size:22px;font-weight:700;letter-spacing:0.12em;
+        border:2.5px solid #1a1a1a;padding:4px 16px;margin-right:16px;line-height:1.2;">
+        ${series.nameEn}
+      </div>`;
+
+    const itemRows = s.items.map(item => {
+      const amount = item.qty * item.unitPrice;
+      const nameMatch = item.name.match(/^(.*?)(\s+\d+[\w.×\/]+(?:ml|g|gX\d+|mL))$/);
+      const dispName  = nameMatch ? nameMatch[1] : item.name;
+      const dispVol   = nameMatch ? nameMatch[2].trim() : '';
+      const seriesCode = series.nameEn.split(' ')[0].substring(0,4);
+      // 仕入価格・定価の表示
+      // 全プラン共通：unitPrice=仕入価格（6掛け）、retailPrice=定価（あれば）
+      const purchaseDisp = '¥'+num(item.unitPrice);
+      const retailDisp   = item.retailPrice ? '¥'+num(item.retailPrice) : '-';
+
+      return `<tr>
+        <td style="padding:7px 10px;border-bottom:1px solid #e8e8e8;font-size:11px;color:#666;text-align:center;width:5%;">${seriesCode}</td>
+        <td style="padding:7px 10px;border-bottom:1px solid #e8e8e8;font-size:11.5px;width:38%;">${dispName}</td>
+        <td style="padding:7px 10px;border-bottom:1px solid #e8e8e8;font-size:11.5px;text-align:center;width:7%;">${dispVol}</td>
+        <td style="padding:7px 10px;border-bottom:1px solid #e8e8e8;font-size:11.5px;text-align:right;width:11%;">${purchaseDisp}</td>
+        <td style="padding:7px 10px;border-bottom:1px solid #e8e8e8;font-size:11.5px;text-align:right;width:11%;">${retailDisp}</td>
+        <td style="padding:7px 10px;border-bottom:1px solid #e8e8e8;font-size:11.5px;text-align:center;width:6%;">${item.qty}</td>
+        <td style="padding:7px 10px;border-bottom:1px solid #e8e8e8;font-size:11.5px;text-align:right;width:11%;">¥${num(amount)}</td>
+      </tr>`;
+    }).join('');
+
+    return `
+    <div class="pdf-page" style="${PAGE_STYLE}">
+      <!-- シリーズロゴ + タイトル -->
+      <div style="display:flex;align-items:center;margin-bottom:16px;padding-bottom:12px;border-bottom:2px solid #1a1a1a;">
+        ${seriesLogo}
+        <div style="font-size:16px;font-weight:500;letter-spacing:0.1em;">導入初期費用一覧表</div>
+        <div style="margin-left:auto;font-size:11px;color:#666;">${planLabel}</div>
+      </div>
+
+      <!-- 送料注記 -->
+      <div style="font-size:10px;color:#666;margin-bottom:10px;">
+        ※送料は一律770円となります。（一部地域を除く）（55,000円以上のご購入で送料無料とさせていただきます。）
+      </div>
+
+      <!-- 明細テーブル -->
+      <table style="width:100%;border-collapse:collapse;font-size:11.5px;">
+        <thead>
+          <tr style="background:#f0f0f0;">
+            <th style="border:1px solid #bbb;padding:6px 8px;font-weight:500;text-align:center;"></th>
+            <th style="border:1px solid #bbb;padding:6px 10px;font-weight:500;text-align:center;">商品名</th>
+            <th style="border:1px solid #bbb;padding:6px 8px;font-weight:500;text-align:center;">容量</th>
+            <th style="border:1px solid #bbb;padding:6px 8px;font-weight:500;text-align:center;">仕入価格(税込)</th>
+            <th style="border:1px solid #bbb;padding:6px 8px;font-weight:500;text-align:center;">定価(税込)</th>
+            <th style="border:1px solid #bbb;padding:6px 8px;font-weight:500;text-align:center;">個数</th>
+            <th style="border:1px solid #bbb;padding:6px 8px;font-weight:500;text-align:center;">小計(税込)</th>
+          </tr>
+        </thead>
+        <tbody>${itemRows}</tbody>
+      </table>
+
+      <!-- 合計行 -->
+      <div style="display:flex;justify-content:flex-end;align-items:center;gap:16px;padding:8px 10px;
+        border:1px solid #bbb;border-top:none;background:#f9f9f9;font-size:12px;">
+        <span style="color:#555;">合計(税込)</span>
+        <span style="font-weight:500;min-width:40px;text-align:center;">${s.items.reduce((n,i)=>n+i.qty,0)}</span>
+        <span style="font-weight:500;min-width:80px;text-align:right;">¥${num(sub)}</span>
+      </div>
+
+      <!-- 講習費 -->
+      <div style="display:flex;justify-content:space-between;align-items:center;
+        padding:8px 14px;border:1px solid #bbb;border-top:none;font-size:12px;background:#fff;">
+        <span>講習費【ディプロマ発行費を含む】(税込)</span>
+        <span style="font-weight:500;">¥55,000</span>
+      </div>
+
+      <!-- 合計(講習費込) -->
+      <div style="display:flex;justify-content:space-between;align-items:center;
+        padding:8px 14px;border:1px solid #bbb;border-top:none;font-size:13px;font-weight:700;background:#f0f0f0;">
+        <span>合計(税込)</span>
+        <span>¥${num(sub + 55000)}</span>
+      </div>
+
+      <!-- 備考欄 -->
+      <div style="margin-top:14px;border:1px solid #bbb;padding:8px 12px;min-height:50px;font-size:11px;color:#555;">
+        〈備考・通信欄〉
+      </div>
+
+      <!-- 会社情報フッター -->
+      <div style="margin-top:10px;display:flex;justify-content:space-between;align-items:center;
+        border:1px solid #bbb;padding:6px 12px;font-size:10.5px;">
+        <span style="font-weight:500;">株式会社クリスティーナジャパン</span>
+        <span style="color:#555;">【お問い合わせ】e-mail: info@christina-japan.com　TEL 03-6812-9867　FAX 03-6332-9046</span>
+      </div>
+
+      ${FOOTER_HTML}
+    </div>`;
+  }).join('');
+
+  return `<div id="estimate-html">${coverPage}${detailPages}</div>`;
+}
+
+// ════════════════════════════════════════
+// ② 発注書（Excelフォーマットに準拠）
+// ════════════════════════════════════════
+function buildOrderHTML() {
+  const clientName  = getClientName();
+  const remarks     = getRemarks();
+  const grandTotal  = calcTotal();
+  const grandTax    = Math.round(grandTotal / 11);
+  const grandPreTax = grandTotal - grandTax;
+  const issueDate   = todayStr();
+
+  // ── 明細行（シリーズ＋講習費）
+  const detailRows = selectedSeries.map(s => {
+    const series    = SERIES_DATA[s.seriesKey];
+    const planLabel = { basic:'ベーシック', special:'スペシャル', homecare:'ホームケア', gyomu:'業務用' }[s.planKey];
+    const sub       = calcSubtotal(s);
+    return `<tr>
+      <td style="padding:9px 10px;border:1px solid #bbb;font-size:12px;line-height:1.5;">
+        ・${planLabel}　${series.nameEn}<br>
+        <span style="font-size:10px;color:#666;margin-left:1em;">（${series.name}）</span>
+      </td>
+      <td style="padding:9px 10px;border:1px solid #bbb;border-left:none;text-align:center;font-size:12px;">1</td>
+      <td style="padding:9px 10px;border:1px solid #bbb;border-left:none;text-align:right;font-size:12px;">¥${num(sub)}</td>
+      <td style="padding:9px 10px;border:1px solid #bbb;border-left:none;text-align:right;font-size:12px;">¥${num(sub)}</td>
+      <td style="padding:9px 10px;border:1px solid #bbb;border-left:none;text-align:right;font-size:11px;color:#555;">¥${num(Math.round(sub/1.1))}</td>
+    </tr>`;
+  }).join('');
+
+  const lessonDetailRows = Object.values(LESSON_ITEMS)
+    .filter(i => i.qty > 0)
+    .map(item => `<tr>
+      <td style="padding:9px 10px;border:1px solid #bbb;font-size:12px;">・${item.label}</td>
+      <td style="padding:9px 10px;border:1px solid #bbb;border-left:none;text-align:center;font-size:12px;">${item.qty}</td>
+      <td style="padding:9px 10px;border:1px solid #bbb;border-left:none;text-align:right;font-size:12px;">¥${num(item.price)}</td>
+      <td style="padding:9px 10px;border:1px solid #bbb;border-left:none;text-align:right;font-size:12px;">¥${num(item.price * item.qty)}</td>
+      <td style="padding:9px 10px;border:1px solid #bbb;border-left:none;text-align:right;font-size:11px;color:#555;">¥${num(Math.round(item.price * item.qty / 1.1))}</td>
+    </tr>`).join('');
+
+  // 空行（最低8行）
+  const filled = selectedSeries.length + Object.values(LESSON_ITEMS).filter(i => i.qty > 0).length;
+  let emptyRows = '';
+  for (let i = filled; i < 8; i++) {
+    emptyRows += `<tr>
+      <td style="padding:9px 10px;border:1px solid #bbb;height:36px;"></td>
+      <td style="padding:9px 10px;border:1px solid #bbb;border-left:none;"></td>
+      <td style="padding:9px 10px;border:1px solid #bbb;border-left:none;"></td>
+      <td style="padding:9px 10px;border:1px solid #bbb;border-left:none;"></td>
+      <td style="padding:9px 10px;border:1px solid #bbb;border-left:none;"></td>
+    </tr>`;
+  }
+
+  const orderPage = `
+  <div class="pdf-page" style="${PAGE_STYLE}padding-top:36px;">
+
+    <!-- 発注書No・申込日 -->
+    <div style="display:flex;justify-content:space-between;margin-bottom:4px;font-size:11px;color:#333;">
+      <span>発注書No.：＿＿＿＿＿＿</span>
+      <span>申込日：　${issueDate}</span>
     </div>
 
-  </div>
+    <!-- 宛先 -->
+    <div style="font-size:11.5px;color:#333;margin-bottom:14px;line-height:1.7;">
+      株式会社CHRISTINA JAPAN　御中<br>
+      東京都品川区北品川5-1-18 住友不動産大崎ツインビル東館7F
+    </div>
+
+    <!-- 発送先・サロン名・担当者名（縦3行） -->
+    <div style="margin-bottom:10px;font-size:11.5px;border:1px solid #bbb;">
+      <div style="display:flex;border-bottom:1px solid #bbb;">
+        <div style="width:90px;padding:7px 10px;background:#f5f5f5;color:#555;flex-shrink:0;border-right:1px solid #bbb;">発送先</div>
+        <div style="padding:7px 10px;flex:1;min-height:28px;"></div>
+      </div>
+      <div style="display:flex;border-bottom:1px solid #bbb;">
+        <div style="width:90px;padding:7px 10px;background:#f5f5f5;color:#555;flex-shrink:0;border-right:1px solid #bbb;">サロン名</div>
+        <div style="padding:7px 10px;flex:1;font-weight:500;">${clientName}</div>
+      </div>
+      <div style="display:flex;">
+        <div style="width:90px;padding:7px 10px;background:#f5f5f5;color:#555;flex-shrink:0;border-right:1px solid #bbb;">担当者名</div>
+        <div style="padding:7px 10px;flex:1;display:flex;justify-content:space-between;align-items:center;">
+          <span style="min-width:160px;">＿＿＿＿＿＿＿＿＿＿</span>
+          <span style="color:#555;">印</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- タイトル -->
+    <div style="text-align:center;margin:12px 0 10px;">
+      <div style="font-size:20px;font-weight:700;letter-spacing:0.3em;border-bottom:2px solid #1a1a1a;display:inline-block;padding-bottom:4px;">発　注　書</div>
+    </div>
+
+    <!-- 合意文 -->
+    <div style="font-size:10.5px;color:#333;line-height:1.75;margin-bottom:12px;padding:8px 10px;border:1px solid #ddd;background:#fafafa;">
+      当社（私）は、株式会社CHRISTINA JAPANの商品を下記のとおり発注いたします。<br>
+      詳細は添付明細をご参照ください。<br>
+      <span style="font-size:10px;color:#888;">※電子契約で本発注書を契約した場合、合意締結証明書が電子メールにて送付されます。</span><br>
+      また、技術講習の受講を希望します。
+    </div>
+
+    <!-- 合計金額ボックス -->
+    <table style="width:100%;border-collapse:collapse;margin-bottom:12px;font-size:12px;">
+      <thead><tr>
+        <th style="border:1px solid #bbb;padding:7px;background:#f0f0f0;font-weight:500;text-align:center;width:33%;">合計金額(税抜)</th>
+        <th style="border:1px solid #bbb;border-left:none;padding:7px;background:#f0f0f0;font-weight:500;text-align:center;width:33%;">消費税(10％)</th>
+        <th style="border:1px solid #bbb;border-left:none;padding:7px;background:#f0f0f0;font-weight:500;text-align:center;width:34%;">支払総額(税込)</th>
+      </tr></thead>
+      <tbody><tr>
+        <td style="border:1px solid #bbb;border-top:none;padding:9px;text-align:center;font-size:13px;font-weight:500;">¥${num(grandPreTax)}</td>
+        <td style="border:1px solid #bbb;border-top:none;border-left:none;padding:9px;text-align:center;font-size:13px;font-weight:500;">¥${num(grandTax)}</td>
+        <td style="border:1px solid #bbb;border-top:none;border-left:none;padding:9px;text-align:center;font-size:14px;font-weight:700;">¥${num(grandTotal)}</td>
+      </tr></tbody>
+    </table>
+
+    <!-- 明細テーブル -->
+    <table style="width:100%;border-collapse:collapse;font-size:12px;margin-bottom:14px;">
+      <thead><tr>
+        <th style="border:1px solid #bbb;padding:7px 10px;background:#f0f0f0;font-weight:500;text-align:center;width:44%;">シリーズ詳細</th>
+        <th style="border:1px solid #bbb;border-left:none;padding:7px;background:#f0f0f0;font-weight:500;text-align:center;width:8%;">数量</th>
+        <th style="border:1px solid #bbb;border-left:none;padding:7px;background:#f0f0f0;font-weight:500;text-align:center;width:16%;">単価(税込)</th>
+        <th style="border:1px solid #bbb;border-left:none;padding:7px;background:#f0f0f0;font-weight:500;text-align:center;width:16%;">合計(税込)</th>
+        <th style="border:1px solid #bbb;border-left:none;padding:7px;background:#f0f0f0;font-weight:500;text-align:center;width:16%;">税抜き</th>
+      </tr></thead>
+      <tbody>${detailRows}${lessonDetailRows}${emptyRows}</tbody>
+    </table>
+
+    <!-- 備考欄 -->
+    ${remarks ? `<div style="border:1px solid #bbb;padding:8px 10px;min-height:36px;font-size:11px;color:#333;margin-bottom:12px;line-height:1.8;white-space:pre-wrap;">${remarks}</div>` : ''}
+
+    <!-- 振込先 -->
+    <div style="border:1px solid #bbb;padding:10px 14px;font-size:11px;color:#333;line-height:2.0;margin-bottom:10px;">
+      <div style="font-weight:500;margin-bottom:2px;">振込先：</div>
+      千葉銀行　品川支店（支店番号：139）<br>
+      普通預金：3161270<br>
+      口座名義：カ）クリスティーナジャパン　モリ　ショウタ
+    </div>
+
+    ${FOOTER_HTML}
   </div>`;
+
+  // ── 2ページ目以降：各シリーズの明細（導入初期費用一覧表）
+  const detailPages = selectedSeries.map(s => {
+    const series     = SERIES_DATA[s.seriesKey];
+    const planLabel  = { basic:'ベーシックプラン', special:'スペシャルプラン', homecare:'ホームケアプラン', gyomu:'業務用プラン' }[s.planKey];
+    const sub        = calcSubtotal(s);
+    const isHomecare = s.planKey === 'homecare';
+
+    const seriesLogo = `
+      <div style="display:inline-block;font-size:22px;font-weight:700;letter-spacing:0.12em;
+        border:2.5px solid #1a1a1a;padding:4px 16px;margin-right:16px;line-height:1.2;">
+        ${series.nameEn}
+      </div>`;
+
+    const itemRows = s.items.map(item => {
+      const amount     = item.qty * item.unitPrice;
+      const nameMatch  = item.name.match(/^(.*?)(\s+\d+[\w.×\/]+(?:ml|g|gX\d+|mL))$/);
+      const dispName   = nameMatch ? nameMatch[1] : item.name;
+      const dispVol    = nameMatch ? nameMatch[2].trim() : '';
+      const seriesCode = series.nameEn.split(' ')[0].substring(0, 4);
+      const purchaseDisp = '¥'+num(item.unitPrice);
+      const retailDisp   = item.retailPrice ? '¥'+num(item.retailPrice) : '-';
+      return `<tr>
+        <td style="padding:7px 10px;border-bottom:1px solid #e8e8e8;font-size:11px;color:#666;text-align:center;width:5%;">${seriesCode}</td>
+        <td style="padding:7px 10px;border-bottom:1px solid #e8e8e8;font-size:11.5px;width:38%;">${dispName}</td>
+        <td style="padding:7px 10px;border-bottom:1px solid #e8e8e8;font-size:11.5px;text-align:center;width:7%;">${dispVol}</td>
+        <td style="padding:7px 10px;border-bottom:1px solid #e8e8e8;font-size:11.5px;text-align:right;width:11%;">${purchaseDisp}</td>
+        <td style="padding:7px 10px;border-bottom:1px solid #e8e8e8;font-size:11.5px;text-align:right;width:11%;">${retailDisp}</td>
+        <td style="padding:7px 10px;border-bottom:1px solid #e8e8e8;font-size:11.5px;text-align:center;width:6%;">${item.qty}</td>
+        <td style="padding:7px 10px;border-bottom:1px solid #e8e8e8;font-size:11.5px;text-align:right;width:11%;">¥${num(amount)}</td>
+      </tr>`;
+    }).join('');
+
+    return `
+    <div class="pdf-page" style="${PAGE_STYLE}">
+      <div style="display:flex;align-items:center;margin-bottom:16px;padding-bottom:12px;border-bottom:2px solid #1a1a1a;">
+        ${seriesLogo}
+        <div style="font-size:16px;font-weight:500;letter-spacing:0.1em;">導入初期費用一覧表</div>
+        <div style="margin-left:auto;font-size:11px;color:#666;">${planLabel}</div>
+      </div>
+      <div style="font-size:10px;color:#666;margin-bottom:10px;">
+        ※送料は一律770円となります。（一部地域を除く）（55,000円以上のご購入で送料無料とさせていただきます。）
+      </div>
+      <table style="width:100%;border-collapse:collapse;font-size:11.5px;">
+        <thead>
+          <tr style="background:#f0f0f0;">
+            <th style="border:1px solid #bbb;padding:6px 8px;font-weight:500;text-align:center;"></th>
+            <th style="border:1px solid #bbb;padding:6px 10px;font-weight:500;text-align:center;">商品名</th>
+            <th style="border:1px solid #bbb;padding:6px 8px;font-weight:500;text-align:center;">容量</th>
+            <th style="border:1px solid #bbb;padding:6px 8px;font-weight:500;text-align:center;">仕入価格(税込)</th>
+            <th style="border:1px solid #bbb;padding:6px 8px;font-weight:500;text-align:center;">定価(税込)</th>
+            <th style="border:1px solid #bbb;padding:6px 8px;font-weight:500;text-align:center;">個数</th>
+            <th style="border:1px solid #bbb;padding:6px 8px;font-weight:500;text-align:center;">小計(税込)</th>
+          </tr>
+        </thead>
+        <tbody>${itemRows}</tbody>
+      </table>
+      <div style="display:flex;justify-content:flex-end;align-items:center;gap:16px;padding:8px 10px;
+        border:1px solid #bbb;border-top:none;background:#f9f9f9;font-size:12px;">
+        <span style="color:#555;">合計(税込)</span>
+        <span style="font-weight:500;min-width:40px;text-align:center;">${s.items.reduce((n,i)=>n+i.qty,0)}</span>
+        <span style="font-weight:500;min-width:80px;text-align:right;">¥${num(sub)}</span>
+      </div>
+      <div style="margin-top:14px;border:1px solid #bbb;padding:8px 12px;min-height:50px;font-size:11px;color:#555;">
+        〈備考・通信欄〉
+      </div>
+      <div style="margin-top:10px;display:flex;justify-content:space-between;align-items:center;
+        border:1px solid #bbb;padding:6px 12px;font-size:10.5px;">
+        <span style="font-weight:500;">株式会社クリスティーナジャパン</span>
+        <span style="color:#555;">【お問い合わせ】e-mail: info@christina-japan.com　TEL 03-6812-9867　FAX 03-6332-9046</span>
+      </div>
+      ${FOOTER_HTML}
+    </div>`;
+  }).join('');
+
+  return `<div id="estimate-html">${orderPage}${detailPages}</div>`;
 }
+
+// ════════════════════════════════════════
+// プレビュー
+// ════════════════════════════════════════
+function openPreview() {
+  const html = buildEstimateHTML();
+  document.getElementById('previewContent').innerHTML = html;
+  document.getElementById('previewModal').classList.add('open');
+}
+function closePreview() {
+  document.getElementById('previewModal').classList.remove('open');
+}
+
 function formatDate(val) {
   if (!val) return '─';
   const d = new Date(val);
@@ -1632,7 +2687,180 @@ function formatDate(val) {
 }
 
 // ════════════════════════════════════════
-// PDF出力
+// Google Drive連携
+// ════════════════════════════════════════
+const GOOGLE_CLIENT_ID = '796720732470-vmk2iu3pk8dgj839g9dknups6db16cfh.apps.googleusercontent.com';
+const SCOPES = 'https://www.googleapis.com/auth/drive.file';
+let gapiReady = false;
+let tokenClient = null;
+
+// Google APIライブラリを動的に読み込む
+function loadGoogleAPIs() {
+  return new Promise((resolve) => {
+    if (gapiReady) { resolve(); return; }
+    const script1 = document.createElement('script');
+    script1.src = 'https://apis.google.com/js/api.js';
+    script1.onload = () => {
+      gapi.load('client', async () => {
+        await gapi.client.init({});
+        await gapi.client.load('https://www.googleapis.com/discovery/v1/apis/drive/v3/rest');
+        gapiReady = true;
+        resolve();
+      });
+    };
+    document.head.appendChild(script1);
+
+    const script2 = document.createElement('script');
+    script2.src = 'https://accounts.google.com/gsi/client';
+    document.head.appendChild(script2);
+  });
+}
+
+// Driveにアップロードしてリンクを取得
+async function uploadToDrive() {
+  if (selectedSeries.length === 0) {
+    alert('シリーズを1つ以上追加してからDriveに保存してください。');
+    return;
+  }
+
+  const btn = document.getElementById('driveBtn');
+  btn.innerHTML = '⏳ 準備中...';
+  btn.disabled = true;
+  document.getElementById('driveResult').style.display = 'none';
+
+  try {
+    await loadGoogleAPIs();
+
+    // アクセストークンを取得
+    const token = await getAccessToken();
+    gapi.client.setToken({ access_token: token });
+
+    // PDFをBlobとして生成
+    btn.innerHTML = '⏳ PDF生成中...';
+    const pdfBlob = await generatePDFBlob();
+
+    // Google DriveにアップロードするためのファイルメタとBlob
+    const clientName = document.getElementById('clientName').value.trim() || '書類';
+    const dateStr    = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+    const docLabel   = currentDocType === 'order' ? '発注書' : '御見積書';
+    const fileName   = `${clientName}様_${docLabel}_${dateStr}.pdf`;
+
+    btn.innerHTML = '⏳ アップロード中...';
+
+    // multipart/form-dataでアップロード
+    const metadata = { name: fileName, mimeType: 'application/pdf' };
+    const form = new FormData();
+    form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
+    form.append('file', pdfBlob);
+
+    const uploadRes = await fetch(
+      'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,webViewLink',
+      {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+        body: form,
+      }
+    );
+    const fileData = await uploadRes.json();
+    if (!fileData.id) throw new Error('アップロード失敗: ' + JSON.stringify(fileData));
+
+    // 誰でも閲覧できるように共有設定
+    await fetch(`https://www.googleapis.com/drive/v3/files/${fileData.id}/permissions`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ role: 'reader', type: 'anyone' }),
+    });
+
+    // 共有URLを表示・コピー
+    const shareUrl = `https://drive.google.com/file/d/${fileData.id}/view`;
+    document.getElementById('driveUrl').value = shareUrl;
+    document.getElementById('driveLink').href  = shareUrl;
+    document.getElementById('driveResult').style.display = 'block';
+
+    // クリップボードに自動コピー
+    await navigator.clipboard.writeText(shareUrl);
+    btn.innerHTML = '✅ 保存完了！URLコピー済み';
+
+  } catch (e) {
+    console.error(e);
+    alert('エラーが発生しました。\n' + e.message);
+    btn.innerHTML = '📤 Driveに保存してURLコピー';
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+// Googleアカウントでログインしてアクセストークンを取得
+function getAccessToken() {
+  return new Promise((resolve, reject) => {
+    // GSIが読み込まれるまで少し待つ
+    const tryInit = (retries) => {
+      if (typeof google === 'undefined' || !google.accounts) {
+        if (retries > 0) { setTimeout(() => tryInit(retries - 1), 300); return; }
+        reject(new Error('Google APIの読み込みに失敗しました'));
+        return;
+      }
+      tokenClient = google.accounts.oauth2.initTokenClient({
+        client_id: GOOGLE_CLIENT_ID,
+        scope: SCOPES,
+        callback: (resp) => {
+          if (resp.error) { reject(new Error(resp.error)); return; }
+          resolve(resp.access_token);
+        },
+      });
+      tokenClient.requestAccessToken({ prompt: 'consent' });
+    };
+    tryInit(10);
+  });
+}
+
+// PDFをBlobとして生成（ダウンロードせずBlob返却）
+async function generatePDFBlob() {
+  const { jsPDF } = window.jspdf;
+  const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+
+  const pdfRoot = document.getElementById('pdf-root');
+  pdfRoot.innerHTML = `
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500&family=Noto+Sans+JP:wght@300;400;500&display=swap" rel="stylesheet">
+    ${buildEstimateHTML()}
+  `;
+  pdfRoot.style.display = 'block';
+
+  await document.fonts.ready;
+  await new Promise(r => setTimeout(r, 1000));
+
+  const pages = pdfRoot.querySelectorAll('.pdf-page');
+  const pdfW  = pdf.internal.pageSize.getWidth();
+  const pdfH  = pdf.internal.pageSize.getHeight();
+
+  for (let i = 0; i < pages.length; i++) {
+    const canvas = await html2canvas(pages[i], {
+      scale: 2.5, useCORS: true, backgroundColor: '#ffffff',
+      logging: false, width: 794, windowWidth: 794,
+    });
+    const imgData = canvas.toDataURL('image/jpeg', 0.98);
+    if (i > 0) pdf.addPage();
+    pdf.addImage(imgData, 'JPEG', 0, 0, pdfW, pdfH);
+  }
+
+  pdfRoot.style.display = 'none';
+  pdfRoot.innerHTML = '';
+
+  return pdf.output('blob');
+}
+
+// URLをクリップボードにコピー
+async function copyDriveUrl() {
+  const url = document.getElementById('driveUrl').value;
+  await navigator.clipboard.writeText(url);
+  alert('URLをコピーしました！LINEに貼り付けて送ってください。');
+}
+
+// ════════════════════════════════════════
+// PDF出力（ダウンロード）
 // ════════════════════════════════════════
 async function generatePDF() {
   if (selectedSeries.length === 0) {
@@ -1647,27 +2875,25 @@ async function generatePDF() {
 
   try {
     const { jsPDF } = window.jspdf;
-    // A4サイズ（mm単位）
     const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
 
     const pdfRoot = document.getElementById('pdf-root');
     pdfRoot.innerHTML = `
-      <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500&display=swap" rel="stylesheet">
+      <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500&family=Noto+Sans+JP:wght@300;400;500&display=swap" rel="stylesheet">
       ${buildEstimateHTML()}
     `;
     pdfRoot.style.display = 'block';
 
-    // フォント読み込み待機
     await document.fonts.ready;
     await new Promise(r => setTimeout(r, 1000));
 
     const pages = pdfRoot.querySelectorAll('.pdf-page');
-    const pdfW  = pdf.internal.pageSize.getWidth();   // 210mm
-    const pdfH  = pdf.internal.pageSize.getHeight();  // 297mm
+    const pdfW  = pdf.internal.pageSize.getWidth();
+    const pdfH  = pdf.internal.pageSize.getHeight();
 
     for (let i = 0; i < pages.length; i++) {
       const canvas = await html2canvas(pages[i], {
-        scale: 2.5,           // 高解像度（数字を大きくするほど鮮明になるが重くなる）
+        scale: 2.5,
         useCORS: true,
         backgroundColor: '#ffffff',
         logging: false,
@@ -1679,9 +2905,10 @@ async function generatePDF() {
       pdf.addImage(imgData, 'JPEG', 0, 0, pdfW, pdfH);
     }
 
-    const clientName = document.getElementById('clientName').value || '見積書';
+    const clientName = document.getElementById('clientName').value.trim() || '書類';
     const dateStr    = new Date().toISOString().slice(0, 10).replace(/-/g, '');
-    pdf.save(`${clientName}_御見積書_${dateStr}.pdf`);
+    const docLabel   = currentDocType === 'order' ? '発注書' : '御見積書';
+    pdf.save(`${clientName}様_${docLabel}_${dateStr}.pdf`);
 
   } catch (e) {
     console.error(e);
