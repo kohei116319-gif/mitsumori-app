@@ -1995,6 +1995,15 @@ function renderSeriesCard(s) {
   const isHomecare = s.planKey === 'homecare';
   const subtotal  = calcSubtotal(s);
 
+  // ② Basic/SP/業務用の場合：そのシリーズのホームケア商材（retailPriceがある商品）の合計を計算
+  // 仕入価格（unitPrice）× 数量 で集計
+  const homecareSubtotal = !isHomecare
+    ? s.items
+        .filter(i => i.retailPrice)
+        .reduce((sum, i) => sum + i.unitPrice * i.qty, 0)
+    : 0;
+  const hasHomecare = !isHomecare && homecareSubtotal > 0;
+
   // 全プランで数量・単価・削除を編集可能
   // 商品名はホームケアのみ編集可（他プランは固定表示）
   const rows = s.items.map((item, idx) => {
@@ -2032,6 +2041,13 @@ function renderSeriesCard(s) {
         </td>
       </tr>` : '';
 
+  // ② ホームケア小計の表示（Basic/SP/業務用でretailPriceがある商品がある場合のみ）
+  const homecareRow = hasHomecare
+    ? `<div id="hcsub_${s.id}" style="margin-top:6px;padding:8px 14px;background:var(--accent-light);border-radius:6px;display:flex;justify-content:space-between;align-items:center;">
+        <span style="font-size:12px;color:var(--accent);">🏠 ホームケア製品小計（仕入価格基準）</span>
+        <span style="font-size:13px;font-weight:500;color:var(--accent);">¥${num(homecareSubtotal)}</span>
+      </div>` : '';
+
   return `
     <div class="series-card" id="card_${s.id}">
       <div class="series-card-header">
@@ -2065,6 +2081,7 @@ function renderSeriesCard(s) {
         <div class="subtotal-row">
           小計：<span class="subtotal-amount" id="sub_${s.id}">¥${num(subtotal)}</span>
         </div>
+        ${homecareRow}
       </div>
     </div>`;
 }
@@ -2083,6 +2100,14 @@ function updateItem(id, idx, field, value) {
   if (amtEl) amtEl.textContent = '¥' + num(amt);
   const subEl = document.getElementById(`sub_${id}`);
   if (subEl) subEl.textContent = '¥' + num(calcSubtotal(s));
+  // ホームケア小計（retailPriceがある商品×数量）を動的更新
+  const hcSubEl = document.getElementById(`hcsub_${id}`);
+  if (hcSubEl) {
+    const hcTotal = s.items
+      .filter(i => i.retailPrice)
+      .reduce((sum, i) => sum + i.unitPrice * i.qty, 0);
+    hcSubEl.querySelector('span:last-child').textContent = '¥' + num(hcTotal);
+  }
   updateTotal();
 }
 
@@ -2424,15 +2449,15 @@ function buildQuoteHTML() {
       <!-- 講習費 -->
       <div style="display:flex;justify-content:space-between;align-items:center;
         padding:8px 14px;border:1px solid #bbb;border-top:none;font-size:12px;background:#fff;">
-        <span>講習費【ディプロマ発行費を含む】(税込)</span>
-        <span style="font-weight:500;">¥55,000</span>
+        <span>${isHomecare ? '講習費（ディプロマ発行費を含む）・店販のみ(税込)' : '講習費【ディプロマ発行費を含む】(税込)'}</span>
+        <span style="font-weight:500;">${isHomecare ? '¥27,500' : '¥55,000'}</span>
       </div>
 
       <!-- 合計(講習費込) -->
       <div style="display:flex;justify-content:space-between;align-items:center;
         padding:8px 14px;border:1px solid #bbb;border-top:none;font-size:13px;font-weight:700;background:#f0f0f0;">
         <span>合計(税込)</span>
-        <span>¥${num(sub + 55000)}</span>
+        <span>¥${num(sub + (isHomecare ? 27500 : 55000))}</span>
       </div>
 
       <!-- 備考欄 -->
