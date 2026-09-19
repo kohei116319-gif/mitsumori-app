@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="ja">
 <head>
@@ -834,12 +833,14 @@
     <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
       <div style="font-size:13px;color:var(--mid);">適用する掛け率：</div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;" id="rate-buttons">
-        <button class="rate-btn active" data-rate="0.5"  onclick="setRate(0.5)">5掛け（50%）</button>
+        <button class="rate-btn"        data-rate="0.5"  onclick="setRate(0.5)">5掛け（50%）</button>
+        <button class="rate-btn"        data-rate="0.53" onclick="setRate(0.53)">5.3掛け（53%）</button>
         <button class="rate-btn"        data-rate="0.55" onclick="setRate(0.55)">5.5掛け（55%）</button>
+        <button class="rate-btn"        data-rate="0.56" onclick="setRate(0.56)">5.6掛け（56%）</button>
+        <button class="rate-btn"        data-rate="0.57" onclick="setRate(0.57)">5.7掛け（57%）</button>
+        <button class="rate-btn"        data-rate="0.58" onclick="setRate(0.58)">5.8掛け（58%）</button>
         <button class="rate-btn active" data-rate="0.6"  onclick="setRate(0.6)">6掛け（60%）</button>
-        <button class="rate-btn"        data-rate="0.65" onclick="setRate(0.65)">6.5掛け（65%）</button>
         <button class="rate-btn"        data-rate="0.7"  onclick="setRate(0.7)">7掛け（70%）</button>
-        <button class="rate-btn"        data-rate="1.0"  onclick="setRate(1.0)">定価（100%）</button>
       </div>
     </div>
     <div style="margin-top:10px;font-size:11px;color:var(--light);">
@@ -913,6 +914,20 @@
         </div>
       </div>
 
+      <!-- 講習費 52,800円→50%割引（26,400円） -->
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border:1px solid var(--border);border-radius:10px;background:var(--warm-white);">
+        <div>
+          <div style="font-size:13px;font-weight:400;color:var(--charcoal);">講習費（業店）50%割引</div>
+          <div style="font-size:12px;color:var(--mid);margin-top:2px;">¥26,400 / 回 <span style="color:#c0392b;font-size:11px;">（¥52,800→50%OFF）</span></div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <button class="btn btn-outline" style="padding:6px 14px;font-size:18px;line-height:1;" onclick="changeLesson('lesson528h',-1)">−</button>
+          <span id="lesson528h-display" style="font-size:16px;font-weight:500;min-width:28px;text-align:center;">0</span>
+          <button class="btn btn-gold" style="padding:6px 14px;font-size:18px;line-height:1;" onclick="changeLesson('lesson528h',1)">＋</button>
+          <span style="font-size:12px;color:var(--mid);min-width:80px;text-align:right;" id="lesson528h-subtotal">¥0</span>
+        </div>
+      </div>
+
       <!-- 講習費 27,500円（店販のみ） -->
       <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border:1px solid var(--border);border-radius:10px;background:var(--warm-white);">
         <div>
@@ -952,6 +967,20 @@
           <span id="diploma-display" style="font-size:16px;font-weight:500;min-width:28px;text-align:center;">0</span>
           <button class="btn btn-gold" style="padding:6px 14px;font-size:18px;line-height:1;" onclick="changeLesson('diploma',1)">＋</button>
           <span style="font-size:12px;color:var(--mid);min-width:80px;text-align:right;" id="diploma-subtotal">¥0</span>
+        </div>
+      </div>
+
+      <!-- ディプロマ発行費 3,300円（新価格 10/19〜） -->
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border:1px solid var(--border);border-radius:10px;background:var(--warm-white);">
+        <div>
+          <div style="font-size:13px;font-weight:400;color:var(--charcoal);">ディプロマ発行費（新価格・10/19〜）</div>
+          <div style="font-size:12px;color:var(--mid);margin-top:2px;">¥3,300 / 通 <span style="color:#c0392b;font-size:11px;">（2025/10/19より）</span></div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <button class="btn btn-outline" style="padding:6px 14px;font-size:18px;line-height:1;" onclick="changeLesson('diploma3300',-1)">−</button>
+          <span id="diploma3300-display" style="font-size:16px;font-weight:500;min-width:28px;text-align:center;">0</span>
+          <button class="btn btn-gold" style="padding:6px 14px;font-size:18px;line-height:1;" onclick="changeLesson('diploma3300',1)">＋</button>
+          <span style="font-size:12px;color:var(--mid);min-width:80px;text-align:right;" id="diploma3300-subtotal">¥0</span>
         </div>
       </div>
 
@@ -1861,11 +1890,13 @@ let itemCounter = 0;
 
 // 講習費・発行費の個数管理
 const LESSON_ITEMS = {
-  lesson55:  { label: '講習費（ディプロマ発行費を含む）', price: 55000, qty: 0 },
-  lesson528: { label: '講習費（業店）',                   price: 52800, qty: 0 },
-  lesson27:  { label: '講習費（店販のみ）',               price: 27500, qty: 0 },
-  lesson253: { label: '講習費（店のみ）',                 price: 25300, qty: 0 },
-  diploma:   { label: 'ディプロマ発行費',                 price: 2200,  qty: 0 },
+  lesson55:     { label: '講習費（ディプロマ発行費を含む）', price: 55000, qty: 0, isLesson: true  },
+  lesson528:    { label: '講習費（業店）',                   price: 52800, qty: 0, isLesson: true  },
+  lesson528h:   { label: '講習費（業店）50%割引',            price: 26400, qty: 0, isLesson: true  },
+  lesson27:     { label: '講習費（店販のみ）',               price: 27500, qty: 0, isLesson: true  },
+  lesson253:    { label: '講習費（店のみ）',                 price: 25300, qty: 0, isLesson: true  },
+  diploma:      { label: 'ディプロマ発行費',                 price: 2200,  qty: 0, isLesson: false },
+  diploma3300:  { label: 'ディプロマ発行費（新価格・10/19〜）', price: 3300, qty: 0, isLesson: false },
 };
 
 // ════════════════════════════════════════
@@ -2373,11 +2404,51 @@ function buildQuoteHTML() {
   </div>`;
 
   // ── 各シリーズの明細ページ
+  // ① 講習費不要シリーズ（テラスキン・ビオサテンセラム・ボディクリームは講習費なし、ディプロマ発行費のみ）
+  const NO_LESSON_SERIES = ['terraskin', 'biosatin', 'bodycream'];
+
+  // ② 講習費対象シリーズのリスト（NO_LESSON_SERIES以外）
+  const lessonTargetSeries = selectedSeries.filter(s => !NO_LESSON_SERIES.includes(s.seriesKey));
+
+  // 「講習費」のみを展開（isLesson:true のもの）
+  const lessonFeeList = [];
+  Object.values(LESSON_ITEMS).forEach(item => {
+    if (!item.isLesson) return;
+    for (let i = 0; i < item.qty; i++) {
+      lessonFeeList.push({ label: item.label, price: item.price });
+    }
+  });
+
+  // 「ディプロマ発行費」をまとめたリスト（isLesson:false のもの）
+  const diplomaFeeList = [];
+  Object.values(LESSON_ITEMS).forEach(item => {
+    if (item.isLesson) return;
+    for (let i = 0; i < item.qty; i++) {
+      diplomaFeeList.push({ label: item.label, price: item.price });
+    }
+  });
+
+  // ディプロマ発行費は全シリーズで先頭から割り当て（講習費不要シリーズも対象）
+  // 先頭から順に各シリーズへ割り当て（余ったら講習費/ディプロマなし）
+  // lessonTargetSeries[0] → lessonFeeList[0]
+  // 全シリーズ[0] → diplomaFeeList[0]
+
   const detailPages = selectedSeries.map((s, idx) => {
     const series    = SERIES_DATA[s.seriesKey];
     const planLabel = { basic:'ベーシックプラン', special:'スペシャルプラン', homecare:'ホームケアプラン', gyomu:'業務用プラン' }[s.planKey];
     const sub       = calcSubtotal(s);
     const isHomecare = s.planKey === 'homecare';
+    const isNoLesson = NO_LESSON_SERIES.includes(s.seriesKey);
+
+    // このシリーズが講習費対象シリーズの何番目か
+    const lessonIdx = lessonTargetSeries.findIndex(ls => ls.id === s.id);
+    // 対象外シリーズ（terraskin等）または講習費リストに割り当てなし → 講習費なし
+    const lessonItem = (!isNoLesson && lessonIdx >= 0 && lessonIdx < lessonFeeList.length)
+      ? lessonFeeList[lessonIdx]
+      : null;
+
+    // ディプロマ発行費：全シリーズ順番に割り当て（NO_LESSON_SERIESも含む）
+    const diplomaItem = (idx < diplomaFeeList.length) ? diplomaFeeList[idx] : null;
 
     // シリーズロゴ（nameEnをスタイリッシュに表示）
     const seriesLogo = `
@@ -2446,18 +2517,23 @@ function buildQuoteHTML() {
         <span style="font-weight:500;min-width:80px;text-align:right;">¥${num(sub)}</span>
       </div>
 
-      <!-- 講習費 -->
+      <!-- 講習費（NO_LESSON_SERIESは非表示）+ ディプロマ発行費（全シリーズ表示） -->
+      ${lessonItem ? `
       <div style="display:flex;justify-content:space-between;align-items:center;
         padding:8px 14px;border:1px solid #bbb;border-top:none;font-size:12px;background:#fff;">
-        <span>${isHomecare ? '講習費（ディプロマ発行費を含む）・店販のみ(税込)' : '講習費【ディプロマ発行費を含む】(税込)'}</span>
-        <span style="font-weight:500;">${isHomecare ? '¥27,500' : '¥55,000'}</span>
-      </div>
-
-      <!-- 合計(講習費込) -->
+        <span>${lessonItem.label}(税込)</span>
+        <span style="font-weight:500;">¥${num(lessonItem.price)}</span>
+      </div>` : ''}
+      ${diplomaItem ? `
+      <div style="display:flex;justify-content:space-between;align-items:center;
+        padding:8px 14px;border:1px solid #bbb;border-top:none;font-size:12px;background:#fff;">
+        <span>${diplomaItem.label}(税込)</span>
+        <span style="font-weight:500;">¥${num(diplomaItem.price)}</span>
+      </div>` : ''}
       <div style="display:flex;justify-content:space-between;align-items:center;
         padding:8px 14px;border:1px solid #bbb;border-top:none;font-size:13px;font-weight:700;background:#f0f0f0;">
         <span>合計(税込)</span>
-        <span>¥${num(sub + (isHomecare ? 27500 : 55000))}</span>
+        <span>¥${num(sub + (lessonItem ? lessonItem.price : 0) + (diplomaItem ? diplomaItem.price : 0))}</span>
       </div>
 
       <!-- 備考欄 -->
