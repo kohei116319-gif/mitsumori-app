@@ -1900,6 +1900,149 @@ const LESSON_ITEMS = {
 };
 
 // ════════════════════════════════════════
+// 業務用アイテム 使用回数データ（ガイドラインブック 7-2）
+// ════════════════════════════════════════
+const USAGE_TIMES = {
+  unstress: {
+    'STEP1': 75,
+    'STEP2': 150,
+    'STEP3': 83,
+    'STEP4': 30,
+    'STEP5': 100,
+    'STEP6A': 167,
+    'STEP6B': 200,
+    'STEP7': 83,
+    'STEP8': 125,
+    'STEP9': 300,
+  },
+  biophyto: {
+    'STEP1': 125,
+    'STEP2': 100,
+    'STEP3': 83,
+    'STEP4': 100,
+    'STEP5': 111,
+    'STEP6A': 83,
+    'STEP6B': 83,
+    'STEP6C': 83,
+    'STEP6D': 83,
+    'STEP7': 200,
+    'STEP8A': 250,
+    'STEP8B': 250,
+    'STEP9': 150,
+  },
+  illustrious: {
+    'STEP1': 150,
+    'STEP2A': 30,
+    'STEP2B': 30,
+    'STEP3': 30,
+    'STEP4': 83,
+    'STEP5': 15,
+    'STEP6': 100,
+    'STEP7': 200,
+  },
+  rosedemer: {
+    'STEP1': 150,
+    // STEP2キット（2A: 40回 / 2B: 60回）は特殊処理でgetUsageTimesが文字列を返す
+    'STEP3': 250,
+    'STEP4': 150,
+    'STEP5': 40,
+  },
+  foreveryoung: {
+    'STEP1': 60,
+    'STEP2': 150,
+    'STEP3': 300,
+    'STEP4': 83,
+    'STEP5A': 75,
+    'STEP5B': 150,
+    // STEP6B は2種類ある — アルゲマスク:15回、アイマスク:60回 → 個別マッチで対処
+    'STEP6B アクティブ': 15,
+    'STEP6B アンチ': 60,
+    'STEP6B': 15, // フォールバック
+    'STEP6': 83,
+    'STEP7': 100,
+    'STEP8': 300,
+  },
+  muse: {
+    'STEP1': 60,
+    'STEP2A': 150,
+    'STEP3': 125,
+    'STEP4': 300,
+    'STEP5': 100,
+    'STEP6': 83,
+    'STEP7': 100,
+    'STEP8': 300,
+  },
+  newmuse: {
+    'STEP1': 60,
+    'STEP2A': 150,
+    'STEP3': 75,
+    'STEP4': 50,
+    'STEP5': 83,
+    'STEP6A': 20,
+    'STEP6B': 150,
+    'STEP7': 200,
+    'STEP8': 200,
+  },
+  comodex: {
+    'STEP1': 250,
+    'STEP2': 83,
+    'STEP3A': 150,
+    'STEP4': 150,
+    'STEP5': 150,
+    'STEP6': 83,
+    'STEP7': 300,
+  },
+  nuance: {
+    'STEP1': 60,
+    'STEP2': 100,
+    'STEP3': 83,
+    'STEP4': 200,
+    'STEP5': 75,
+    'STEP6': 63,
+    'STEP7': 10,
+    'STEP8': 100,
+    'STEP9A': 150,
+    'STEP9B': 150,
+  },
+};
+
+// 商品名から使用回数を取得するヘルパー
+// 戻り値: 数値（回数）、文字列（"2A: 40回 / 2B: 60回" のような複合表示）、null（データなし）
+function getUsageTimes(seriesKey, itemName) {
+  // ROSE DE MER の STEP2 キット特殊処理
+  if (seriesKey === 'rosedemer' && itemName.startsWith('シーハーバルディープピールキット')) {
+    return '2A: 40回 / 2B: 60回';
+  }
+
+  const seriesMap = USAGE_TIMES[seriesKey];
+  if (!seriesMap) return null;
+  // 商品名の先頭からSTEP番号部分を正規化して取り出す
+  // 例: "STEP 1 "→"STEP1", "STEP２A "→"STEP2A", "STEP６B "→"STEP6B"
+  const normalize = s => s
+    .replace(/STEP\s+/, 'STEP')  // "STEP 1" → "STEP1"
+    .replace(/１/g,'1').replace(/２/g,'2').replace(/３/g,'3')
+    .replace(/４/g,'4').replace(/５/g,'5').replace(/６/g,'6')
+    .replace(/７/g,'7').replace(/８/g,'8').replace(/９/g,'9');
+  const normItem = normalize(itemName);
+  // 長いキーを優先（"STEP6B アンチ" が "STEP6B" より先にマッチするよう）
+  const sortedKeys = Object.keys(seriesMap).sort((a, b) => normalize(b).length - normalize(a).length);
+  for (const key of sortedKeys) {
+    const normKey = normalize(key);
+    if (normItem.startsWith(normKey + ' ') || normItem.startsWith(normKey + '　') || normItem.startsWith(normKey + '-')) {
+      return seriesMap[key];
+    }
+  }
+  return null;
+}
+
+// 使用回数の表示文字列に変換（数値→"XX回"、文字列はそのまま）
+function formatUsage(val) {
+  if (val === null) return null;
+  if (typeof val === 'string') return val;
+  return val + '回';
+}
+
+// ════════════════════════════════════════
 // 掛け率管理
 // ════════════════════════════════════════
 let currentRate = 0.6; // デフォルト6掛け
@@ -2467,11 +2610,16 @@ function buildQuoteHTML() {
       // 全プラン共通：unitPrice=仕入価格（6掛け）、retailPrice=定価（あれば）
       const purchaseDisp = '¥'+num(item.unitPrice);
       const retailDisp   = item.retailPrice ? '¥'+num(item.retailPrice) : '-';
+      // 使用回数：STEP番号で始まるアイテム（業務用）のみ表示。ホームケア商品（STEPなし）は空白
+      const isStepItem = /^STEP/i.test(item.name) || item.name.startsWith('シーハーバルディープピールキット');
+      const usageVal = isStepItem ? getUsageTimes(s.seriesKey, item.name) : null;
+      const usageDisp = isStepItem ? (usageVal !== null ? formatUsage(usageVal) : '-') : '';
 
       return `<tr>
         <td style="padding:7px 10px;border-bottom:1px solid #e8e8e8;font-size:11px;color:#666;text-align:center;width:5%;">${seriesCode}</td>
-        <td style="padding:7px 10px;border-bottom:1px solid #e8e8e8;font-size:11.5px;width:38%;">${dispName}</td>
+        <td style="padding:7px 10px;border-bottom:1px solid #e8e8e8;font-size:11.5px;width:35%;">${dispName}</td>
         <td style="padding:7px 10px;border-bottom:1px solid #e8e8e8;font-size:11.5px;text-align:center;width:7%;">${dispVol}</td>
+        <td style="padding:7px 10px;border-bottom:1px solid #e8e8e8;font-size:10.5px;text-align:center;width:6%;color:#555;">${usageDisp}</td>
         <td style="padding:7px 10px;border-bottom:1px solid #e8e8e8;font-size:11.5px;text-align:right;width:11%;">${purchaseDisp}</td>
         <td style="padding:7px 10px;border-bottom:1px solid #e8e8e8;font-size:11.5px;text-align:right;width:11%;">${retailDisp}</td>
         <td style="padding:7px 10px;border-bottom:1px solid #e8e8e8;font-size:11.5px;text-align:center;width:6%;">${item.qty}</td>
@@ -2500,6 +2648,7 @@ function buildQuoteHTML() {
             <th style="border:1px solid #bbb;padding:6px 8px;font-weight:500;text-align:center;"></th>
             <th style="border:1px solid #bbb;padding:6px 10px;font-weight:500;text-align:center;">商品名</th>
             <th style="border:1px solid #bbb;padding:6px 8px;font-weight:500;text-align:center;">容量</th>
+            <th style="border:1px solid #bbb;padding:6px 8px;font-weight:500;text-align:center;">使用回数</th>
             <th style="border:1px solid #bbb;padding:6px 8px;font-weight:500;text-align:center;">仕入価格(税込)</th>
             <th style="border:1px solid #bbb;padding:6px 8px;font-weight:500;text-align:center;">定価(税込)</th>
             <th style="border:1px solid #bbb;padding:6px 8px;font-weight:500;text-align:center;">個数</th>
@@ -2714,10 +2863,14 @@ function buildOrderHTML() {
       const seriesCode = series.nameEn.split(' ')[0].substring(0, 4);
       const purchaseDisp = '¥'+num(item.unitPrice);
       const retailDisp   = item.retailPrice ? '¥'+num(item.retailPrice) : '-';
+      const isStepItem2 = /^STEP/i.test(item.name) || item.name.startsWith('シーハーバルディープピールキット');
+      const usageVal2 = isStepItem2 ? getUsageTimes(s.seriesKey, item.name) : null;
+      const usageDisp = isStepItem2 ? (usageVal2 !== null ? formatUsage(usageVal2) : '-') : '';
       return `<tr>
         <td style="padding:7px 10px;border-bottom:1px solid #e8e8e8;font-size:11px;color:#666;text-align:center;width:5%;">${seriesCode}</td>
-        <td style="padding:7px 10px;border-bottom:1px solid #e8e8e8;font-size:11.5px;width:38%;">${dispName}</td>
+        <td style="padding:7px 10px;border-bottom:1px solid #e8e8e8;font-size:11.5px;width:35%;">${dispName}</td>
         <td style="padding:7px 10px;border-bottom:1px solid #e8e8e8;font-size:11.5px;text-align:center;width:7%;">${dispVol}</td>
+        <td style="padding:7px 10px;border-bottom:1px solid #e8e8e8;font-size:10.5px;text-align:center;width:6%;color:#555;">${usageDisp}</td>
         <td style="padding:7px 10px;border-bottom:1px solid #e8e8e8;font-size:11.5px;text-align:right;width:11%;">${purchaseDisp}</td>
         <td style="padding:7px 10px;border-bottom:1px solid #e8e8e8;font-size:11.5px;text-align:right;width:11%;">${retailDisp}</td>
         <td style="padding:7px 10px;border-bottom:1px solid #e8e8e8;font-size:11.5px;text-align:center;width:6%;">${item.qty}</td>
@@ -2741,6 +2894,7 @@ function buildOrderHTML() {
             <th style="border:1px solid #bbb;padding:6px 8px;font-weight:500;text-align:center;"></th>
             <th style="border:1px solid #bbb;padding:6px 10px;font-weight:500;text-align:center;">商品名</th>
             <th style="border:1px solid #bbb;padding:6px 8px;font-weight:500;text-align:center;">容量</th>
+            <th style="border:1px solid #bbb;padding:6px 8px;font-weight:500;text-align:center;">使用回数</th>
             <th style="border:1px solid #bbb;padding:6px 8px;font-weight:500;text-align:center;">仕入価格(税込)</th>
             <th style="border:1px solid #bbb;padding:6px 8px;font-weight:500;text-align:center;">定価(税込)</th>
             <th style="border:1px solid #bbb;padding:6px 8px;font-weight:500;text-align:center;">個数</th>
